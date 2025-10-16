@@ -1,3 +1,4 @@
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,11 +10,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # will need to load the data in later to test and see
+# loading in the data that is an array form of the map
+# test array for now
+tester = torch.from_numpy(np.zeros((600,),dtype=np.float32))
+# note to anyone touching this, must put array as such
+# for testing, training, etc
+
 # base system for our neural net, will need to make adjustments
 class makeChoiceClassifier(nn.Module):
     def __init__(self, num_classes=4):
         # Where define all parts of model
-        super(makeChoiceClassifer,self).__init__()
+        super().__init__()
         self.input = nn.Linear(20*30, 128)
         self.hidden = nn.Linear(128, 64)
         self.output = nn.Linear(64,4)
@@ -26,34 +33,38 @@ class makeChoiceClassifier(nn.Module):
         x = F.log_softmax(self.output(x),dim=1)
         return x
 
-model = makeChoiceClassfier()
+model = makeChoiceClassifier()
 
 # function for training loss, base to be modified later according to
 # the needs of our system
 
 loss_func = nn.NLLLoss()
-optimizer = optim.Adam(model.parametners(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # number of runs through our training data
-epochs = 5
-for epoch in range(epochs):
-    # insert a for loop that goes through and calc loss pm decisions
-        # Stuff below go into said forloop
-        optimizer.zero_grad()
-
-        output = model(data)# note data, output, and results are placeholders
-        loss = loss_function(output, results)
-
-        loss.backward()
-        optimizer.step()
-    pass
+# commented out for now as there is no real use rn as no data
+# to train and test on
+##epochs = 5
+##for epoch in range(epochs):
+##    # insert a for loop that goes through and calc loss pm decisions
+##        # Stuff below go into said forloop
+##    optimizer.zero_grad()
+##
+##    output = model(tester)# note data, output, and results are placeholders
+##    loss = loss_function(output, results)
+##
+##    loss.backward()
+##    optimizer.step()
+##    pass
 
 # evaluation function
 # currently it is log function, may adjust accordingly
 # will return a number that corresponds to a choice
 with torch.no_grad():
-    log_probabilities = model(data)
+    log_probabilities = model(tester)
 
 probabilities = torch.exp(log_probabilities)
+print(probabilities)
 
 output = np.argmax(probabilities)
+print(output)
