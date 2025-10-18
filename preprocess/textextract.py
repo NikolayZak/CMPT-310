@@ -13,7 +13,8 @@ def getTowerNameBlocking(frame):
 from multiprocessing import Pool
 
 def processTowerName(pid, img):
-    return (pid, pytesseract.image_to_string(img).strip().lower())
+    name = pytesseract.image_to_string(img).strip().lower()
+    return (pid, name)
 
 class TextProcessor:
     def __init__(self):
