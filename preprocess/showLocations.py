@@ -1,7 +1,7 @@
-from video import *
-from extractor import Extractor
+from video import createVideoReader, createVideoWriter
+from extractor import VideoAnnotate
 from feature import TowerLocationTracker, distance 
-from towertype import getTowerName
+from textextract import getTowerName
 
 import numpy as np
 import cv2 as cv
@@ -41,16 +41,14 @@ def replaceLater(frame):
         result = cv.circle(result, towerLocation, 50, (255, 255, 255), 10)
     return result 
 
-if not __name__ == "__main__":
-    extract = Extractor("test/feature/out.mp4", user=replaceLater, user1=replaceLater1)
-    #readVideo("test/download/meadow.mp4", extract.handleFrame, "0:58" , "1:01", extract.setInfo)
-    #readVideo("test/download/meadow.mp4", extract.handleFrame, "0:58" , "4:47", extract.setInfo)
-    readVideo("test/download/meadow.mp4", extract.handleFrame, "3:18" , "4:47", extract.setInfo)
-    extract.close()
-else:
+if __name__ == "__main__":
     import sys
     if len(sys.argv) < 5:
         print("showLocations.py <input file> <start time> <end time> <output file>")
         sys.exit(1)
-    extract = Extractor(sys.argv[4], user=replaceLater, user1=replaceLater1)
-    readVideo(sys.argv[1], extract.handleFrame, sys.argv[2], sys.argv[3], extract.setInfo)
+    reader = createVideoReader(sys.argv[1])
+    annotate = VideoAnnotate(sys.argv[4], user=replaceLater, user1=replaceLater1)
+    res, fps = reader.getInfo()
+    annotate.setInfo(res, fps)
+    reader.process(annotate.handleFrame, start=sys.argv[2], end=sys.argv[3])
+    annotate.close()
