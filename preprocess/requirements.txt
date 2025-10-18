@@ -1,3 +1,4 @@
 pytesseract
 opencv-python >= 4.12
 numpy
+pandas
