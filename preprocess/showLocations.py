@@ -1,45 +1,35 @@
 from video import createVideoReader, createVideoWriter
 from extractor import VideoAnnotate
-from feature import TowerLocationTracker, distance 
-from textextract import getTowerName
+from map import Map
 
 import numpy as np
 import cv2 as cv
 
-locations = {}
-tracker = TowerLocationTracker()
-lastSelectedTower = None
-def replaceLater1(img, frame):
-    global towerType
-    global lastSelectedTower
-    if not lastSelectedTower is None:
-        towerType = getTowerName(img)
-        frame = cv.putText(frame, towerType, (lastSelectedTower[0]+20, lastSelectedTower[1]+20,), cv.FONT_HERSHEY_SIMPLEX, 2,(0, 0, 0), 20)
-        frame = cv.putText(frame, towerType, (lastSelectedTower[0]+20, lastSelectedTower[1]+20,), cv.FONT_HERSHEY_SIMPLEX, 2,(255, 255, 255), 10)
-    return frame
+map = Map()
 
-def replaceLater(frame):
-    global tracker
-    global lastSelectedTower
-    result = frame.copy()#np.zeros(frame.shape, np.uint8)
-    towerLocation = tracker.getSelectedTower(frame)
-    towerAdded = False
-    for tower in locations:
-        if towerLocation is None and not lastSelectedTower is None:
-            if distance(lastSelectedTower, tower) < 200:
-                result = cv.circle(result, tower, 50, (255, 255, 0), 10)
+
+def render(fid, img, frame):
+    output = frame.copy()#np.zeros(frame.shape, np.uint8)
+    map.analyzeFrame(fid, img, frame, blocking = True)
+    tower = map.getLastSelectedTower()
+    tid = None
+    if not tower is None:
+        tid = tower.tid
+    for twr in map.towers:
+        if twr.tid != tid:
+            output = cv.circle(output, twr.location, 50, (255, 0, 0), 10)
+    if not tower is None:
+        position = tower.location
+        if tower.last_interacted == fid:
+            # currently selected
+            output = cv.circle(output, position, 50, (255, 255, 255), 10)
         else:
-            if not towerLocation is None and distance(towerLocation, tower) < 200:
-                result = cv.circle(result, tower, 50, (255, 255, 255), 10)
-                lastSelectedTower = tower
-                towerAdded = False
-            else:
-                result = cv.circle(result, tower, 50, (255, 0, 0), 10)
-    if not towerLocation is None and not towerAdded:
-        locations[towerLocation] = 1# replace
-        lastSelectedTower = towerLocation
-        result = cv.circle(result, towerLocation, 50, (255, 255, 255), 10)
-    return result 
+            # last selected
+            output = cv.circle(output, position, 50, (255, 255, 0), 10)
+        # text render
+        output = cv.putText(output, tower.name, (position[0]+20, position[1]+20), cv.FONT_HERSHEY_SIMPLEX, 2,(0, 0, 0), 20)
+        output = cv.putText(output, tower.name, (position[0]+20, position[1]+20), cv.FONT_HERSHEY_SIMPLEX, 2,(255, 255, 255), 10)
+    return output
 
 if __name__ == "__main__":
     import sys

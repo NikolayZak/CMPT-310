@@ -1,7 +1,7 @@
 from background import Background
 from video import createVideoWriter
 
-class BaseExtractor:
+class BackgroundExtractor:
     def __init__(self):
         self.background = None
     def setInfo(self, resolution, fps):
@@ -14,24 +14,22 @@ class BaseExtractor:
     def filterBackground(self, frame):
         return self.background.rmBackground(frame)
 
-class VideoAnnotate(BaseExtractor):
-    def __init__(self, output, user=None, user1=None):
+class VideoAnnotate(BackgroundExtractor):
+    def __init__(self, output, annotate=None):
         self.output = output
         self.video = None
-        self.user = user
-        self.user1 = user1
+        self.annotate = annotate
     def close(self):
         self.video.close()
     def setInfo(self, resolution, fps):
         print(f"video resolution {resolution}, fps: {fps}")
         self.video = createVideoWriter(self.output, resolution, fps)
         super().setInfo(resolution, fps)
+        self.fid = 0
     def handleFrame(self, frame):
         img = frame
         frame = super().handleFrame(frame)
-        if not self.user is None:
-            frame = self.user(frame)
-        if not self.user1 is None:
-            frame = self.user1(img, frame)
+        if not self.annotate is None:
+            frame = self.annotate(self.fid, img, frame)
         self.video.write(frame)
-
+        self.fid += 1
