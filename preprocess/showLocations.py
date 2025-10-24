@@ -37,7 +37,7 @@ if __name__ == "__main__":
         print("showLocations.py <input file> <start time> <end time> <output file>")
         sys.exit(1)
     reader = createVideoReader(sys.argv[1])
-    annotate = VideoAnnotate(sys.argv[4], user=replaceLater, user1=replaceLater1)
+    annotate = VideoAnnotate(sys.argv[4], annotate=render)
     res, fps = reader.getInfo()
     annotate.setInfo(res, fps)
     reader.process(annotate.handleFrame, start=sys.argv[2], end=sys.argv[3])
