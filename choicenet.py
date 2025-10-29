@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
 
 import pandas as pd
 import numpy as np
@@ -12,7 +11,6 @@ import matplotlib.pyplot as plt
 # will need to load the data in later to test and see
 # loading in the data that is an array form of the map
 # test array for now
-tester = torch.from_numpy(np.zeros((600,),dtype=np.float32))
 # note to anyone touching this, must put array as such
 # for testing, training, etc
 
