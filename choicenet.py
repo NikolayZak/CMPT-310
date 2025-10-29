@@ -22,13 +22,13 @@ class makeChoiceClassifier(nn.Module):
     def __init__(self, num_classes=4):
         # Where define all parts of model
         super().__init__()
-        self.input = nn.Linear(20*30, 128)
+        self.input = nn.Linear(78*118, 128)
         self.hidden = nn.Linear(128, 64)
         self.output = nn.Linear(64,4)
         
     def forward(self, x):
         # connect parts defined and return output
-        x = x.view(-1, 20*30)
+        x = x.view(-1, 78*118)
         x = F.relu(self.input(x))
         x = F.relu(self.hidden(x))
         x = F.log_softmax(self.output(x),dim=1)
