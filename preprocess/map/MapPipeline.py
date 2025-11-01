@@ -1,14 +1,21 @@
 import numpy as np
-import pandas as pd
 from PIL import Image, ImageFilter
-import cv2
+import sys
+
+if len(sys.argv) < 3:
+    imagePath = "testMap3.png"
+    outPath = "tester.txt"
+else:
+    imagePath = sys.argv[1]
+    outPath = sys.argv[2]
+
 
 # we will be using this file with pipeline to get images from our image processing
 # and read it into a numeric matrix to be read by the machine learning model
 
 # map images are manually blocked out to train the data on
 # first load in the image and set it as a numpy array
-dataMap = Image.open('testMap3.png') # currently a temporary png to test pipeline
+dataMap = Image.open(imagePath) # currently a temporary png to test pipeline
 dataMap = dataMap.filter(ImageFilter.SHARPEN) # processing image to read clearer
 edgeMap = dataMap.filter(ImageFilter.FIND_EDGES)
 #dataMap.save("checkMap.png") this was for testing
@@ -71,4 +78,4 @@ for i in range(mapFinal.shape[0]):
 # print(mapFinal)
 # print(mapFinal.shape)
 
-np.savetxt('tester.txt',mapFinal,fmt = '%d')
+np.savetxt(outPath,mapFinal,fmt = '%d')
