@@ -43,22 +43,22 @@ while True:
 
     # Subtraction and Gaussian blur
     subtracted = cv2.absdiff(tower, map_img)
-    subtracted = cv2.GaussianBlur(subtracted, (0, 0), 7)
+    #subtracted = cv2.GaussianBlur(subtracted, (0, 0), 7)
 
     # Threshold and convert to binary mask
     gray = cv2.cvtColor(subtracted, cv2.COLOR_BGR2GRAY)
     _, binary = cv2.threshold(gray, threshold, 1, cv2.THRESH_BINARY)
 
     # Remove small areas (bwareaopen equivalent)
-    binary = (binary * 255).astype(np.uint8)
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for c in contours:
-        if cv2.contourArea(c) < 200:
-            cv2.drawContours(binary, [c], -1, 0, -1)
+    #binary = (binary * 255).astype(np.uint8)
+    #contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #for c in contours:
+    #    if cv2.contourArea(c) < 200:
+    #        cv2.drawContours(binary, [c], -1, 0, -1)
 
     # Morphological close (strel('disk', 20))
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 41))
-    binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+    #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 41))
+    #binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
 
     # Apply mask
     mask_3d = np.repeat((binary > 0)[:, :, np.newaxis], 3, axis=2).astype(np.float32)

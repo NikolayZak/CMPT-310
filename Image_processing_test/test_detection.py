@@ -44,7 +44,7 @@ out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
 # Process each frame
 # ----------------------------
 frame_idx = 0
-threshold = 0.35  # adjust similarity threshold here
+threshold = 0.7  # adjust similarity threshold here
 
 while True:
     ret, frame = cap.read()
