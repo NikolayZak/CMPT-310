@@ -5,13 +5,13 @@ import sys
 # ----------------------------
 # Check arguments
 # ----------------------------
-if len(sys.argv) < 3:
-    print("Usage: python detect_template_video.py <template_image> <input_video> <output_video>")
+if len(sys.argv) < 4:
+    print("Usage: python detect_template_video.py <template_image> <input_video> <output_text>")
     sys.exit(1)
 
 template_path = sys.argv[1]
 video_path = sys.argv[2]
-output_path = sys.argv[3]  # new output video file
+output_txt = sys.argv[3]
 
 # ----------------------------
 # Load template image
@@ -20,8 +20,6 @@ template = cv2.imread(template_path, cv2.IMREAD_COLOR)
 if template is None:
     print(f"Error: Could not read template image {template_path}")
     sys.exit(1)
-template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-w, h = template_gray.shape[::-1]
 
 # ----------------------------
 # Open input video
@@ -31,20 +29,23 @@ if not cap.isOpened():
     print(f"Error: Could not open video {video_path}")
     sys.exit(1)
 
-# Get video info
-fps = cap.get(cv2.CAP_PROP_FPS)
-frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-# Prepare output video
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # codec
-out = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
+# ----------------------------
+# Helper function
+# ----------------------------
+def is_duplicate(x, y, existing_boxes, tolerance=30):
+    """Check if (x, y) is within 'tolerance' pixels of any existing box center."""
+    for (ex, ey, ew, eh) in existing_boxes:
+        cx, cy = ex + ew / 2, ey + eh / 2
+        if abs(x + w/2 - cx) < tolerance and abs(y + h/2 - cy) < tolerance:
+            return True
+    return False
 
 # ----------------------------
 # Process each frame
 # ----------------------------
 frame_idx = 0
-threshold = 0.7  # adjust similarity threshold here
+threshold = 0.7
+detected_objects = []
 
 while True:
     ret, frame = cap.read()
@@ -52,27 +53,27 @@ while True:
         break
 
     frame_idx += 1
-    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Template Matching
-    res = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+    res = cv2.matchTemplate(frame, template, cv2.TM_CCOEFF_NORMED)
     loc = np.where(res >= threshold)
 
-    # Draw rectangles if matches are found
+    rects = []
     for pt in zip(*loc[::-1]):
-        cv2.rectangle(frame, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 2)
+        rects.append([pt[0], pt[1], w, h])
 
-    # Print if match detected
-    if len(loc[0]) > 0:
-        print(f"Match found in frame {frame_idx}")
+    if rects:
+        rects, weights = cv2.groupRectangles(rects, groupThreshold=1, eps=0.5)
 
-    # Write frame to output video
-    out.write(frame)
+        for (x, y, w, h) in rects:
+            if not is_duplicate(x, y, detected_objects, tolerance=40):
+                detected_objects.append((x, y, w, h))
+                line = f"Frame {frame_idx}: New object at (x={x}, y={y})"
+                print(line)
 
-# ----------------------------
-# Cleanup
-# ----------------------------
+                # Write each detection immediately
+                with open(output_txt, "a") as f:
+                    f.write(f"{frame_idx},{template_path[:-6]},{x},{y}\n")
+
 cap.release()
-out.release()
 cv2.destroyAllWindows()
-print(f"Output video saved to {output_path}")
+print(f"Results appended to {output_txt}")
