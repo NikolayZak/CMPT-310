@@ -3,15 +3,15 @@ import subprocess
 import glob
 
 # --- Paths ---
-templates_dir = "../Images/Monkeys"
-map_image = "base_monkey_meadow.png"
+templates_dir = "../Images/TowerVectors"
+map_image = "../Images/Maps/base_monkey_meadow.png"
 input_video = "test_data.mp4"
 intermediate_video = "output_video.mp4"
 output_txt = "output.txt"
 
 # --- Step 1: Run opencv_test.py ---
-print("Running opencv_test...")
-subprocess.run(["python3", "opencv_test.py", map_image, input_video], check=True)
+print("Running PreProcessing...")
+subprocess.run(["python3", "PreProcessing.py", map_image, input_video], check=True)
 
 # --- Step 2: Process each template ---
 print("Running template detections...")
@@ -20,7 +20,7 @@ templates = glob.glob(os.path.join(templates_dir, "*"))
 for template_path in templates:
     print(f"Processing {template_path} ...")
     subprocess.run([
-        "python3", "test_detection.py",
+        "python3", "TemplateDetection.py",
         template_path,
         intermediate_video,
         output_txt

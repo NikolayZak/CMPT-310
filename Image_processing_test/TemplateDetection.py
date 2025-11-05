@@ -14,12 +14,16 @@ video_path = sys.argv[2]
 output_txt = sys.argv[3]
 
 # ----------------------------
-# Load template image
+# Load template image and convert to gray
 # ----------------------------
 template = cv2.imread(template_path, cv2.IMREAD_COLOR)
 if template is None:
     print(f"Error: Could not read template image {template_path}")
     sys.exit(1)
+
+template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+template_gray = template_gray.astype(np.float32)
+h, w = template_gray.shape
 
 # ----------------------------
 # Open input video
@@ -46,6 +50,10 @@ def is_duplicate(x, y, existing_boxes, tolerance=30):
 frame_idx = 0
 threshold = 0.7
 detected_objects = []
+results = []
+
+# Optional: skip frames to reduce processing
+fps_skip = 1  # process every 2nd frame (adjust for speed)
 
 while True:
     ret, frame = cap.read()
@@ -53,27 +61,33 @@ while True:
         break
 
     frame_idx += 1
+    if frame_idx % fps_skip != 0:
+        continue
 
-    res = cv2.matchTemplate(frame, template, cv2.TM_CCOEFF_NORMED)
+    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame_gray = frame_gray.astype(np.float32)
+
+    # Template Matching
+    res = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
     loc = np.where(res >= threshold)
 
-    rects = []
-    for pt in zip(*loc[::-1]):
-        rects.append([pt[0], pt[1], w, h])
+    rects = [[pt[0], pt[1], w, h] for pt in zip(*loc[::-1])]
 
     if rects:
-        rects, weights = cv2.groupRectangles(rects, groupThreshold=1, eps=0.5)
+        rects, _ = cv2.groupRectangles(rects, groupThreshold=1, eps=0.5)
 
         for (x, y, w, h) in rects:
             if not is_duplicate(x, y, detected_objects, tolerance=40):
                 detected_objects.append((x, y, w, h))
-                line = f"Frame {frame_idx}: New object at (x={x}, y={y})"
-                print(line)
-
-                # Write each detection immediately
-                with open(output_txt, "a") as f:
-                    f.write(f"{frame_idx},{template_path[:-6]},{x},{y}\n")
+                results.append(f"{frame_idx},{template_path.removesuffix('_P.png').removeprefix('../Images/TowerVectors/')},{x},{y}")
+                print(f"Frame {frame_idx}: New object at (x={x}, y={y})")
 
 cap.release()
 cv2.destroyAllWindows()
+
+# Write all results at once
+if results != []:
+    with open(output_txt, "a") as f:
+        f.write("\n".join(results) + "\n")
+
 print(f"Results appended to {output_txt}")
