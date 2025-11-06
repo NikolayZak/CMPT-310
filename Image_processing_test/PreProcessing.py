@@ -3,7 +3,7 @@ import numpy as np
 import sys
 
 if len(sys.argv) < 3:
-    print("Usage: python preprocess_video.py <map_image> <input_video>")
+    print("Usage: python3 PreProcessing.py <map_image> <input_video>")
     sys.exit(1)
 
 map_image_path = sys.argv[1]
@@ -13,12 +13,12 @@ output_video_path = "preprocessed_video.mp4"
 # ----------------------------
 # Parameters
 # ----------------------------
-fps_out = 0.25          # frames per second to process
+fps_out = 1  # frames per second to process
 crop_rect = (0, 0, 1650, 1080)  # x, y, w, h
-threshold = 0.2       # pixel difference threshold
-min_area = 50         # ignore tiny regions (optional)
-blur_ksize = (3, 3)   # Gaussian blur kernel
-morph_kernel_size = 9 # Morphological closing kernel size
+threshold = 0.2  # pixel difference threshold
+min_area = 50  # ignore tiny regions (optional)
+blur_ksize = (3, 3)  # Gaussian blur kernel
+morph_kernel_size = 9  # Morphological closing kernel size
 
 # ----------------------------
 # Load reference map image

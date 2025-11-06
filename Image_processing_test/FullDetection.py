@@ -1,30 +1,26 @@
 import os
 import subprocess
-import glob
 
 # --- Paths ---
 templates_dir = "../Images/TowerVectors"
 map_image = "../Images/Maps/base_monkey_meadow.png"
 input_video = "test_data.mp4"
-intermediate_video = "output_video.mp4"
+intermediate_video = "preprocessed_video.mp4"
 output_txt = "output.txt"
 
-# --- Step 1: Run opencv_test.py ---
+# --- Step 1: Run PreProcessing.py ---
 print("Running PreProcessing...")
 subprocess.run(["python3", "PreProcessing.py", map_image, input_video], check=True)
+print(f"Matching templates to {intermediate_video}")
 
-# --- Step 2: Process each template ---
+# --- Step 2: Run TemplateDetection.py for all templates in folder ---
 print("Running template detections...")
-templates = glob.glob(os.path.join(templates_dir, "*"))
-
-for template_path in templates:
-    print(f"Processing {template_path} ...")
-    subprocess.run([
-        "python3", "TemplateDetection.py",
-        template_path,
-        intermediate_video,
-        output_txt
-    ], check=True)
+subprocess.run([
+    "python3", "TemplateDetection.py",
+    templates_dir,           # <-- Pass folder instead of individual file
+    intermediate_video,
+    output_txt
+], check=True)
 
 # --- Step 3: Delete intermediate video ---
 if os.path.exists(intermediate_video):
