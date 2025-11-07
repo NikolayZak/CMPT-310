@@ -1,57 +1,82 @@
-from choicenet import makeChoiceClassifier:
+from choicenet import makeChoiceClassifier
 import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
 from dataloader import GameDataset
+from torch.utils.data import DataLoader, random_split
 import sys
 
 
 if len(sys.argv) < 3:
     # change these if not setting cli flags
-    data = ""
-    labels = ""
+    states = ""
+    map = ""
 else:
-    data = sys.argv[1]
-    labels = sys.argv[2]
+    states = sys.argv[1]
+    map = sys.argv[2]
 
+longFormat = False
+if len(sys.argv) > 4:
+    longFormat = True
 
-dataset = GameDataset(data' labels)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+print (device)
 
-# TODO add data shuffling, etc here
+data = GameDataset(states, map, long_fmt=longFormat)
 
+train_data, test_data = random_split(data, [0.8, 0.2])
+train = DataLoader(train_data, batch_size=32, shuffle=True, num_workers=8)
+test = DataLoader(test_data, batch_size=1, shuffle=False, num_workers=2)
+
+print("loaded dataset")
 
 model = makeChoiceClassifier()
+
+model.to(device)
 
 # function for training loss, base to be modified later according to
 # the needs of our system
 
 loss_func = nn.NLLLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+#optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 # number of runs through our training data
 # commented out for now as there is no real use rn as no data
 # to train and test on
-epochs = 5
+epochs = 20
 run_loss = 0
 for epoch in range(epochs):
-    epoch_loss = 0
-    for i, data = enumerate(dataset):
-        in, label = data
+    for i, data in enumerate(train):
+        input, label = data[0].to(device), data[1].to(device)
         # insert a for loop that goes through and calc loss pm decisions
         # Stuff below go into said forloop
         optimizer.zero_grad()
 
-        output = model(in)# note data, output, and results are placeholders
-        loss = loss_function(output, label)
+        output = model(input)
+        loss = loss_func(output, label)
 
         loss.backward()
         optimizer.step()
 
-        epoch_loss += loss.item()
         run_loss += loss.item()
         if i % 100 == 99:
-            print(f"[epoch: {epoch}, {i}] loss: {run_loss}")
+            print(f"[epoch: {epoch+1}, {i}] loss: {run_loss}")
             run_loss = 0
-    print(f"Epoch {epoch}/{epochs}, loss: {epoch_loss}")
+    total = 0
+    correct = 0
+    with torch.no_grad():
+        for data in test:
+            input, label = data[0].to(device), data[1].to(device)
+            output = model(input)
+            _, predicted = torch.max(output, 1)
+            total += 1
+            if predicted == label:
+                correct += 1
+            
+    print(f"Epoch {epoch+1}/{epochs}, accuracy: {correct / total}")
 
 
 

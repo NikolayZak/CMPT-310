@@ -19,7 +19,7 @@ class Tower:
     def __init__(self, tid, fid, coords, upgrades=(0,0,0), mode=0):
         self.tid = tid
         self.name = None
-        self.placed = fid
+        self.frame = fid
         self.last_interacted = fid
         self.location = coords
         self.upgrades = upgrades
@@ -30,23 +30,22 @@ class Tower:
                 print(f"Warning: {self.name} renamed to {name}")
         self.name = name
     def dump(self):
-        return (self.placed, self.tid, getTowerType(self.name), self.location[0], self.location[1], self.upgrades[0], self.upgrades[1], self.upgrades[2], self.mode)
-
+        return (self.tid, getTowerType(self.name), self.location[0], self.location[1], self.upgrades[0], self.upgrades[1], self.upgrades[2], self.mode)
 
 class Map:
     def __init__(self):
         self.tracker = TowerLocationTracker()
         self.towers = []
+        self.money = None
         self.lastSelectedTower = None
         self.textProc = TextProcessor()
     def getLastSelectedTower(self):
         if self.lastSelectedTower is None:
             return None
         return self.towers[self.lastSelectedTower]
-    def getTowerUpdates(self):
-        return self.towers #TODO replace this with tower updates
     def analyzeFrame(self, fid, rawFrame, frame, blocking=False):
-        towerLocation = self.tracker.getSelectedTower(frame)
+        self.tracker.processFrame(frame)
+        towerLocation = self.tracker.getSelectedTower()
         if not towerLocation is None:
             tid = self.getTowerID(towerLocation)
             if tid is None:
@@ -56,6 +55,8 @@ class Map:
             tower = self.towers[tid]
             tower.last_interacted = fid
             self.getTowerName(fid, tid, rawFrame, blocking)
+        if self.tracker.isGameplay():
+            return self.getMoney(fid, rawFrame)
     def getTowerID(self, coord):
         for tower in self.towers:
             if distance(coord, tower.location) < 100:
@@ -65,6 +66,8 @@ class Map:
         if blocking:
             self.towers[tid].name = getTowerNameBlocking(frame)
         self.textProc.requestTowerName((fid,tid), frame)
+    def getMoney(self, fid, frame, blocking=False):
+        self.textProc.requestMoney(fid, frame)
     def gatherText(self):
         for entry in self.textProc.gatherTowerName():
             ids = entry[0]
@@ -72,3 +75,6 @@ class Map:
             for tower in self.towers:
                 if tower.tid == ids[1]:
                     tower.setName(name)
+        self.money = self.textProc.gatherMoney()
+    def getTowerUpdates(self):
+        return self.towers #TODO replace this with tower updates

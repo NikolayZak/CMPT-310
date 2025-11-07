@@ -102,9 +102,16 @@ class TowerLocationTracker:
         if side == -1:
             return self.leftTowerMask
         return self.baseTowerMask
-    def getSelectedTower(self, frame):
+    def getSelectedTower(self):
+        return self.selectedTower
+    def isGameplay(self):
+        return self.gameplay
+    def processFrame(self, frame):
+        self.selectedTower = None
+        self.gameplay=True
         if not isFrameGameplay(frame):
-            return None
+            self.gameplay=False
+            return
         filtered_frame = cv.bitwise_and(frame,frame, mask=self.towerMask(frame))
         possibleLocations = [] # mean position, total position, total entries
         contours = getObjects(filtered_frame)
@@ -135,5 +142,5 @@ class TowerLocationTracker:
                 if location[2] > largestCount:
                     largestCount = location[2]
                     towerPosition = (int(location[0][0]), int(location[0][1]))
-        return towerPosition
+        self.selectedTower = towerPosition
     

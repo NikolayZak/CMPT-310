@@ -19,7 +19,7 @@ class DataExtractor:
         self.background = Background(resolution)
         self.video.process(self.processFrame, start=self.start, end=self.end)
         output = self.extractData()
-        output = pd.DataFrame(output, columns=["placed", "tower-id", "type", "x", "y", "upgrade-1", "upgrade-2", "upgrade-3", "mode"])
+        output = pd.DataFrame(output, columns=["frame", "money", "tower-id", "type", "x", "y", "upgrade-1", "upgrade-2", "upgrade-3", "mode"])
         output.to_csv(output_path)
     def processFrame(self, frame):
         if not self.background.hasImg():
@@ -29,10 +29,13 @@ class DataExtractor:
         self.fid += 1
     def extractData(self):
         self.map.gatherText()
-        towerUpdate = []
-        for towerStatus in self.map.getTowerUpdates():
-            towerUpdate.append(towerStatus.dump())
-        return towerUpdate
+        frameUpdate = []
+        towerStatus = self.map.getTowerUpdates()
+        for frame in self.map.money:
+            for tower in towerStatus:#TODO replace with numpy search
+                if tower.frame >= frame[0]:
+                    frameUpdate.append((frame[0], frame[1]) + tower.dump())
+        return frameUpdate
 
 
 if __name__ == "__main__":
