@@ -1,25 +1,17 @@
 import numpy as np
+import pandas as pd
 from PIL import Image, ImageFilter
-import sys
-
-if len(sys.argv) < 3:
-    imagePath = "testMap3.png"
-    outPath = "tester.txt"
-else:
-    imagePath = sys.argv[1]
-    outPath = sys.argv[2]
-
+import cv2
 
 # we will be using this file with pipeline to get images from our image processing
 # and read it into a numeric matrix to be read by the machine learning model
 
 # map images are manually blocked out to train the data on
 # first load in the image and set it as a numpy array
-dataMap = Image.open(imagePath) # currently a temporary png to test pipeline
-dataMap = dataMap.filter(ImageFilter.SHARPEN) # processing image to read clearer
+dataMap = Image.open('testMap3.png') # currently a temporary png to test pipeline
 edgeMap = dataMap.filter(ImageFilter.FIND_EDGES)
-#dataMap.save("checkMap.png") this was for testing
-#edgeMap.save("edgeMap.png")
+dataMap = dataMap.filter(ImageFilter.SHARPEN) # processing image to read clearer
+# dataMap.save("checkMap.png") #this was for testing
 mapArray = np.array(dataMap)
 
 # Get a blank matrix to use to convert the data into binary
@@ -43,7 +35,7 @@ for i in range(mapArray.shape[0]): # for loop traverses through to convert map
         elif (color(temp,[112,205,255])): # check water 
             mapSimple[i][j] = 2 # this is empty water space
             
-        elif (color(temp,[255,179,0])): # check if oragne / tree
+        elif (color(temp,[255,179,0])): # check if orange / tree
             mapSimple[i][j] = 3
             
         elif (color(temp,[255,26,0])): #areas in valide for placing
@@ -53,7 +45,14 @@ for i in range(mapArray.shape[0]): # for loop traverses through to convert map
             mapSimple[i][j] = 0 # check path 
 
 # merging edge map with the full map to get rid of image edge issues
-edgeMap = edgeMap.filter(ImageFilter.BLUR)
+#edgeMap = edgeMap.filter(ImageFilter.BLUR)
+# we put the edge map into black and white, add a thick border to signify spacing
+# and then run code on interpretting it
+edgeMap = edgeMap.convert('L')
+edgeMap = edgeMap.point(lambda x: 255 if x > 40 else 0)
+edgeMap = edgeMap.convert('RGB')
+edgeMap = edgeMap.filter(ImageFilter.MaxFilter(5))
+# edgeMap.save("edgeMap.png") # for checking test map return values
 mapSimple[np.sum(edgeMap,axis = 2) != 0] = -1
 mapSimple = mapSimple.astype(int)
 
@@ -78,4 +77,4 @@ for i in range(mapFinal.shape[0]):
 # print(mapFinal)
 # print(mapFinal.shape)
 
-np.savetxt(outPath,mapFinal,fmt = '%d')
+np.savetxt('tester.txt',mapFinal,fmt = '%d')
