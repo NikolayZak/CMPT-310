@@ -32,7 +32,8 @@ def preprocessState(state):
 class DataTransform:
     def loadMap(self, path):
         self.mapOutput(path)
-        return self.map_output
+        self.placeTowers()
+        return self.map_output, self.money
         # return np.load(path, mmap_mode="r")
     def loadLabels(self, path):
         self.labelOutput(path)
@@ -41,13 +42,14 @@ class DataTransform:
         self.states = preprocessState(states)
         self.map_data = map_data
         self.frame_count = np.max(self.states['frame'])
+        self.money = self.states['money']
     def mapOutput(self, path):
         self.map_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, inputDim[1], inputDim[0], 3))
         self.map_output[:, :, :, 0] = self.map_data
         self.map_output[:, :, :, 1:2] = 0
     def placeTowers(self):
-        for row in self.states.itertuples():
-            self.map_output[row['frame']:,row['x'], row['y'], 1] = row['type']+1
+        for row in self.states[["frame", "y", "x", "type"]].astype(int).itertuples():
+            self.map_output[row[1]:,row[2], row[3], 1] = row[4]+1
         self.map_output.flush()
     def labelOutput(self, path):
         self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 1))

@@ -15,9 +15,9 @@ class GameDataset(Dataset):
         else:
             self.raw_state = convertKeyFrame2KeyTowerFrame(pd.read_csv(state_path))
         self.data = DataTransform(self.raw_map, self.raw_state)
-        self.map_data = self.data.loadMap("cache/map.npy")
+        self.map_data, self.money = self.data.loadMap("cache/map.npz")
         self.labels = self.data.loadLabels("cache/labels.npy")
     def __len__(self):
         return self.map_data.shape[0]
     def __getitem__(self, index):
-        return self.map_data[index].astype(np.float32), self.labels[index,0]
+        return (self.map_data[index].astype(np.float32), self.money[index]), self.labels[index,0]

@@ -50,12 +50,13 @@ epochs = 20
 run_loss = 0
 for epoch in range(epochs):
     for i, data in enumerate(train):
-        input, label = data[0].to(device), data[1].to(device)
+        input, label = data[0], data[1].to(device)
+        in_map, in_money = input[0].to(device), input[1].to(device)
         # insert a for loop that goes through and calc loss pm decisions
         # Stuff below go into said forloop
         optimizer.zero_grad()
 
-        output = model(input)
+        output = model(in_map, in_money)
         loss = loss_func(output, label)
 
         loss.backward()
@@ -67,16 +68,23 @@ for epoch in range(epochs):
             run_loss = 0
     total = 0
     correct = 0
+    correct_types = {i:0 for i in range(4)}
+    totals = {i:0 for i in range(4)}
     with torch.no_grad():
         for data in test:
-            input, label = data[0].to(device), data[1].to(device)
-            output = model(input)
+            category = data[1].item()
+            input, label = data[0], data[1].to(device)
+            in_map, in_money = input[0].to(device), input[1].to(device)
+            output = model(in_map, in_money)
             _, predicted = torch.max(output, 1)
             total += 1
+            totals[category] += 1
             if predicted == label:
                 correct += 1
-            
+                correct_types[category] += 1
+    accuracy = {i:correct_types[i]/totals[i] for i in range(4) if totals[i] > 0}
     print(f"Epoch {epoch+1}/{epochs}, accuracy: {correct / total}")
+    print(f"Category accuracy: {accuracy}")
 
 
 
