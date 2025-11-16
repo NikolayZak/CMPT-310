@@ -3,19 +3,20 @@ import numpy as np
 import sys
 import os
 
-if len(sys.argv) < 3:
-    print("Usage: python ExtractMoney.py <template_folder> <input_video>")
+if len(sys.argv) < 5:
+    print("Usage: python ExtractMoney.py <template_folder> <input_video> <frame_frequency> <output_text>")
     sys.exit(1)
 
 template_folder = sys.argv[1]
 input_video_path = sys.argv[2]
+output_path = sys.argv[4]
 
 # Crop rectangle (x, y, w, h)
 crop_rect = (360, 20, 195, 45)
 
 stabilizer = []
-window_secs = 1
-frame_count = 1
+window_secs = int(sys.argv[3])
+frame_count = 0
 threshold = 0.77
 overlap_thresh = 0.5
 digit_gap = 100
@@ -71,6 +72,7 @@ if not cap.isOpened():
     print("Could not open video:", input_video_path)
     sys.exit(1)
 
+results = []
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -127,11 +129,18 @@ while True:
     if number_str.isdigit():
         frame_count += 1
 
-        # When the time window is full → output the median
+        # When the time window is full add to results
         if frame_count >= frames_per_window:
-            print("Stable Value:", number_str)
+            results.append(number_str)
             frame_count = 0
 
 
 cap.release()
 cv2.destroyAllWindows()
+
+# Write all results at once
+if results:
+    with open(output_path, "a") as f:
+        f.write("\n".join(results) + "\n")
+
+print(f"Results appended to {output_path}")
