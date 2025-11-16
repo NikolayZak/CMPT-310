@@ -3,6 +3,7 @@ import time
 from pynput.keyboard import Key, Controller
 import numpy as np
 
+
 ### GAME HOTKEYS / DATA VALUES 
 
 MONKEY_KEYS = [
@@ -110,7 +111,7 @@ NORMAL_UPGRADES = [
      [200,200,1200,4800,17500],
      [150,350,3000,6500,42000],
      [220,280,2100,8500,31000]   
-    ]  
+    ],
     [ # Sniper
      [350, 1300, 2500, 6000, 32000],
      [250, 450, 2100, 7600, 12000],
@@ -175,7 +176,7 @@ NORMAL_UPGRADES = [
      [150,250,1600,4200,23000],
      [200,300,1900,8000,48000],
      [300,380,2000,7600,25000]   
-    ]
+    ],
     [ # Banana Farm
      [500, 600, 3000, 19000, 115000],
      [300, 800, 3650, 7200, 100000],
@@ -200,7 +201,7 @@ NORMAL_UPGRADES = [
      [160, 810, 2010, 12500, 45000],
      [175, 830, 2065, 9500, 60000],
      [190, 860, 2120, 9000, 30000]   
-    ], 
+    ]
 ]
 
 def monkey_hotkey(index):
@@ -293,3 +294,4 @@ def next_round():
     keyB.press(Key.space)
     time.sleep(0.1)
     keyB.release(Key.space)
+    
