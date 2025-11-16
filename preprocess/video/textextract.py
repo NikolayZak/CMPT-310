@@ -41,15 +41,23 @@ class TextProcessor:
     def __init__(self):
         self.pool = Pool()
         self.queuedTowerName = []
+        self.towerName = []
         self.queuedMoney = []
+        self.money = []
     def requestTowerName(self, fid, img):
         img = cropTowerName(img)
         self.queuedTowerName.append(self.pool.apply_async(processTowerName, (fid, img)))
+        if len(self.queuedTowerName) % 2000 == 0:
+            self.towerName += [task.get() for task in self.queuedTowerName]
+            self.queuedTowerName = []
     def requestMoney(self, fid, img):
         img = cropMoney(img)
         #cv.imwrite("test.png",img)
         self.queuedMoney.append(self.pool.apply_async(processMoney, (fid, img)))
+        if len(self.queuedMoney) % 2000 == 0:
+            self.money += [task.get() for task in self.queuedMoney]
+            self.queuedMoney = []
     def gatherTowerName(self):
-        return [task.get() for task in self.queuedTowerName]
+        return self.towerName + [task.get() for task in self.queuedTowerName]
     def gatherMoney(self):
-        return np.array([task.get() for task in self.queuedMoney], dtype=np.dtype("int,int"))
+        return np.array(self.money+[task.get() for task in self.queuedMoney], dtype=np.dtype("int,int"))

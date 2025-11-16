@@ -66,6 +66,7 @@ class VideoReader:
     def getInfo(self):
         stdout = check_output(["ffprobe", "-v", "error", "-show_entries", "stream=width,height,r_frame_rate", "-of", "csv=p=0", self.path])
         info = [int(entry) for entry in stdout.decode('utf-8').split("/")[0].split(",")]
+        self.codecs = check_output(["ffprobe", "-v", "error", "-show_entries", "stream=codec_name", "-of", "csv=p=0", self.path]).split()
         self.resolution = info[0:2]
         return (self.resolution, info[2])
     def start(self, start, end):
@@ -75,7 +76,8 @@ class VideoReader:
         if not end is None:
             cmd += ['-to', end]
         if len(os.environ.get("FFMPEG_USE_NVDEC", "")) > 0:
-            cmd += ["-hwaccel","nvdec","-c:v", "av1"]
+            #cmd += ["-hwaccel","nvdec","-c:v", "av1"]
+            cmd += ["-c:v","h264_cuvid"]
         cmd += [ '-i', self.path, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f"{self.resolution[0]}x{self.resolution[1]}", '-an', '-']
         print (f"Running {cmd}")
         self.proc = Popen(cmd, stdout=PIPE)

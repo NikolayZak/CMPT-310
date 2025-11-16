@@ -1,7 +1,7 @@
 from map import Map
 from video import createVideoReader
 from background import Background
-
+import gc
 import pandas as pd
 
 class DataExtractor:
@@ -27,6 +27,8 @@ class DataExtractor:
         objects = self.background.rmBackground(frame)
         tower = self.map.analyzeFrame(self.fid, frame, objects)
         self.fid += 1
+        if self.fid % 5000 == 0:
+            gc.collect()
     def extractData(self):
         self.map.gatherText()
         frameUpdate = []
