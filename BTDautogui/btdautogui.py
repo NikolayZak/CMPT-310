@@ -1,10 +1,7 @@
 import pyautogui
 import time
 from pynput.keyboard import Key, Controller
-import mss
 import numpy as np
-from PIL import Image
-import os
 
 ### GAME HOTKEYS / DATA VALUES 
 
@@ -16,23 +13,25 @@ MONKEY_KEYS = [
     "r",  # 4 - Tack
     "t",  # 5 - Ice
     "y",  # 6 - Glue
-    "z",  # 7 - Sniper
-    "x",  # 8 - Sub
-    "c",  # 9 - Pirate
-    "v",  # 10 - Ace
-    "b",  # 11 - Heli
-    "n",  # 12 - Mortar
-    "m",  # 13 - Dartling
-    "a",  # 14 - Wizard
-    "s",  # 15 - Super
-    "d",  # 16 - Ninja
-    "f",  # 17 - Alch
-    "g",  # 18 - Druid
-    "h",  # 19 - Farm
-    "j",  # 20 - Spike
-    "k",  # 21 - Village
-    "l",  # 22 - Engineer
-    "i"   # 23 - beast handler
+    "p",  # 7 - Desparado
+    "z",  # 8 - Sniper
+    "x",  # 9 - Sub
+    "c",  # 10 - Pirate
+    "v",  # 11 - Ace
+    "b",  # 12 - Heli
+    "n",  # 13 - Mortar
+    "m",  # 14 - Dartling
+    "a",  # 15 - Wizard
+    "s",  # 16 - Super
+    "d",  # 17 - Ninja
+    "f",  # 18 - Alch
+    "g",  # 19 - Druid
+    "o",  # 20 - Mermonkey
+    "h",  # 21 - Farm
+    "j",  # 22 - Spike
+    "k",  # 23 - Village
+    "l",  # 24 - Engineer
+    "i"   # 25 - beast handler
 ]
 
 DIFF_MULTIES = [
@@ -43,13 +42,14 @@ DIFF_MULTIES = [
 ]
 
 NORMAL_COSTS = [
-    0, #hero
+    99999, #hero
     200, #dart
     315, #boomer
     375, #bomb
     260, #tack
     400, #ice
     225, #glue
+    300, # desperado
     350, #sniper
     325, #sub
     400, #pirate buccaneer
@@ -62,10 +62,12 @@ NORMAL_COSTS = [
     400, # ninja
     550, #alchemist
     400, #druid
+    375 , #mermonkey
     1250, #banana
     1000, #spike
     1200, #village
-    350 #engineer
+    350, #engineer
+    250 #Beast handler
 ]
 
 NORMAL_UPGRADES = [
@@ -103,7 +105,12 @@ NORMAL_UPGRADES = [
      [200, 300, 2000, 5000, 22500],
      [100, 970, 1950, 4000, 16000],
      [280, 400, 3600, 4000, 24000]   
-    ],  
+    ],
+    [ # Desperado
+     [200,200,1200,4800,17500],
+     [150,350,3000,6500,42000],
+     [220,280,2100,8500,31000]   
+    ]  
     [ # Sniper
      [350, 1300, 2500, 6000, 32000],
      [250, 450, 2100, 7600, 12000],
@@ -124,7 +131,7 @@ NORMAL_UPGRADES = [
      [200, 350, 900, 18000, 26000],
      [500, 550, 2550, 23400, 85000]   
     ],  
-    [ # Heli Pil\ot
+    [ # Heli Pilot
      [800, 500, 1850, 19600, 45000],
      [300, 600, 3500, 9500, 30000],
      [250, 350, 3400, 8500, 35000]   
@@ -164,6 +171,11 @@ NORMAL_UPGRADES = [
      [250, 350, 1050, 4900, 35000],
      [100, 300, 600, 2350, 45000]   
     ],  
+    [ # Mermonkey
+     [150,250,1600,4200,23000],
+     [200,300,1900,8000,48000],
+     [300,380,2000,7600,25000]   
+    ]
     [ # Banana Farm
      [500, 600, 3000, 19000, 115000],
      [300, 800, 3650, 7200, 100000],
