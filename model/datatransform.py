@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 from functools import partial
+import pickle
+from multiprocessing.pool import ThreadPool
+import os
+import sys
 
 def convertKeyFrame2KeyTowerFrame(path, out):
     data = pd.read_csv(path,sep='`', dtype=str,names=['data']) # do not seperate(need variable columns)
@@ -25,20 +29,36 @@ offsetFactor=(fieldArea[0], fieldArea[1])
 
 def preprocessState(state):
     # scale coordinates
+    state['frame'] = state['frame'] - state['frame'][0]
     state['x'] = (state['x'] - offsetFactor[0]) // scaleFactor[0]
     state['y'] = (state['y'] - offsetFactor[1]) // scaleFactor[1]
     return state
 
+def loadData(info):
+    path, shape = info
+    return np.memmap(path, dtype=np.uint8, mode="read", shape=shape)
+
+
 class DataTransform:
-    def loadMap(self, path):
+    def procMap(self):
+        path = f"cache/map-{self.name}.npz"
+        print(f"creating {path}", file=sys.stderr)
         self.mapOutput(path)
-        self.placeTowers()
-        return self.map_output, self.money
-        # return np.load(path, mmap_mode="r")
-    def loadLabels(self, path):
+        return path, self.map_output.shape
+    def procMoney(self):
+        path = f"cache/money-{self.name}.npy"
+        print(f"creating {path}", file=sys.stderr)
+        self.moneyOutput(path)
+        return path,self.money_output.shape
+    def procLabels(self):
+        path = f"cache/labels-{self.name}.npy"
+        print(f"creating {path}", file=sys.stderr)
         self.labelOutput(path)
-        return self.label_output
-    def __init__(self, map_data, states):
+        return path,self.label_output.shape
+    def preprocess(self):
+        return self.procMap(), self.procMoney(), self.procLabels()
+    def __init__(self, map_data, states, name):
+        self.name = name
         self.states = preprocessState(states)
         self.map_data = map_data
         self.frame_count = np.max(self.states['frame'])
@@ -47,10 +67,15 @@ class DataTransform:
         self.map_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, inputDim[1], inputDim[0], 3))
         self.map_output[:, :, :, 0] = self.map_data
         self.map_output[:, :, :, 1:2] = 0
-    def placeTowers(self):
+        print("uhh", file=sys.stderr)
         for row in self.states[["frame", "y", "x", "type"]].astype(int).itertuples():
             self.map_output[row[1]:,row[2], row[3], 1] = row[4]+1
         self.map_output.flush()
+    def moneyOutput(self, path):
+        self.money_output = np.memmap(path, dtype=int, mode="write", shape=(self.frame_count, 1))
+        for row in self.states[["frame", "money"]].astype(int).itertuples():
+            self.money_output[row[1]:] = row[2]
+        self.money_output.flush()
     def labelOutput(self, path):
         self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 1))
         self.label_output[:] = 0
@@ -66,5 +91,28 @@ class DataTransform:
         
         self.label_output.flush()
 
+def worker(args):
+    import subprocess
+    proc = subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "datatransform.py")], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    stdout,_ = proc.communicate(input=pickle.dumps(args, protocol=pickle.HIGHEST_PROTOCOL))
+    return pickle.loads(stdout)
 
-    
+def processAll(data):
+    #pool = ThreadPool(os.cpu_count())
+    pool = ThreadPool(3)
+    return pool.map(worker, data)
+
+if __name__ == "__main__":
+    import sys
+    map, state, name, long_fmt = pickle.loads(sys.stdin.buffer.read())
+    print(f"loading {state}")
+    if long_fmt:
+        raw_state = pd.read_csv(state)
+    else:
+        raw_state = convertKeyFrame2KeyTowerFrame(pd.read_csv(state))
+    map = np.loadtxt(map, delimiter=" ", dtype=int)
+    transformer = DataTransform(map, raw_state, name)
+    print(f"processing {name}", file=sys.stderr)
+    out= transformer.preprocess()
+    sys.stdout.buffer.write(pickle.dumps(out, protocol=pickle.HIGHEST_PROTOCOL))
+
