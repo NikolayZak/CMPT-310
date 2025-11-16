@@ -21,9 +21,9 @@ inputDim = (118, 76)
 
 # coordinate constants
 screenRes=(1920, 1080)
-fieldArea = (25,0,  1643, 1080)
+fieldArea = (25, 0,  1643, 1080)
 scaleFactor=((fieldArea[2] - fieldArea[0])/inputDim[0],
-        (fieldArea[3]-fieldArea[1]/inputDim[1]))
+        (fieldArea[3]-fieldArea[1])/inputDim[1])
 offsetFactor=(fieldArea[0], fieldArea[1])
 
 
@@ -42,21 +42,23 @@ def loadData(info):
 class DataTransform:
     def procMap(self):
         path = f"cache/map-{self.name}.npz"
-        if os.path.isfile(path) and can_skip:
+        return path, self.mapShape
+        if os.path.isfile(path) and self.can_skip:
             return path, self.mapShape
         print(f"creating {path}", file=sys.stderr)
         self.mapOutput(path)
         return path, self.map_output.shape
     def procMoney(self):
-        if os.path.isfile(path) and can_skip:
-            return path, self.moneyShape
         path = f"cache/money-{self.name}.npy"
+        return path, self.moneyShape
+        if os.path.isfile(path) and self.can_skip:
+            return path, self.moneyShape
         print(f"creating {path}", file=sys.stderr)
         self.moneyOutput(path)
         return path,self.money_output.shape
     def procLabels(self):
         path = f"cache/labels-{self.name}.npy"
-        if os.path.isfile(path) and can_skip:
+        if os.path.isfile(path) and self.can_skip:
             return path, self.labelShape
         print(f"creating {path}", file=sys.stderr)
         self.labelOutput(path)
@@ -77,7 +79,6 @@ class DataTransform:
         self.map_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, inputDim[1], inputDim[0], 3))
         self.map_output[:, :, :, 0] = self.map_data
         self.map_output[:, :, :, 1:2] = 0
-        print("uhh", file=sys.stderr)
         for row in self.states[["frame", "y", "x", "type"]].astype(int).itertuples():
             self.map_output[row[1]:,row[2], row[3], 1] = row[4]+1
         self.map_output.flush()
@@ -87,14 +88,17 @@ class DataTransform:
             self.money_output[row[1]:] = row[2]
         self.money_output.flush()
     def labelOutput(self, path):
-        self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 2))
+        self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 5))
         self.label_output[:] = 0
 
-        idx = np.unique(self.states[["x","y","type"]], return_index=True, return_counts=False, axis=0)[1]
+        a,idx = np.unique(self.states[["x","y","type"]], return_index=True, return_counts=False, axis=0)
         frames = np.zeros((self.frame_count), dtype=bool)
-        frames[idx] = True
+        frames[self.states["frame"][idx]-1] = True
+        frames[(self.states["type"]==0)-1] = False
         self.label_output[frames,0] = 1
-        self.label_output[frames,1] = self.states[["type"]][frames]
+        self.label_output[frames,1] = self.states["type"][idx]
+        self.label_output[frames,2] = self.states["x"][idx]
+        self.label_output[frames,3] = self.states["y"][idx]
 
         #rev = tower_info.iloc[::-1]
         #idx = np.unique(rev["tower-id"])
@@ -103,15 +107,18 @@ class DataTransform:
         self.label_output.flush()
 
 def worker(args):
+    import sys#TODO REMOVE
     import subprocess
     proc = subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "datatransform.py")], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     stdout,_ = proc.communicate(input=pickle.dumps(args, protocol=pickle.HIGHEST_PROTOCOL))
+    sys.exit(0)#TODO REMOVE
     return pickle.loads(stdout)
 
 def processAll(data):
     #pool = ThreadPool(os.cpu_count())
-    pool = ThreadPool(3)
-    return pool.map(worker, data)
+    #pool = ThreadPool(3)
+    worker(data[0])
+    #return pool.map(worker, data)
 
 if __name__ == "__main__":
     import sys
