@@ -25,7 +25,8 @@ class makeChoiceClassifier(nn.Module):
         self.moneyA = nn.Linear(128, 64)
         self.moneyB = nn.Linear(128, 64)
         self.hidden = nn.Linear(128, 64)
-        self.output = nn.Linear(64,4)
+        self.act_out = nn.Linear(64,4)
+        self.tower_out = nn.Linear(64, 25)
         
     def forward(self, field, money):
         # connect parts defined and return output
@@ -33,6 +34,7 @@ class makeChoiceClassifier(nn.Module):
         money = money.view(-1, 1)
         x = F.relu(self.input(x))
         x = F.relu(torch.add(self.moneyA(x), money*self.moneyB(x)))
-        x = F.log_softmax(self.output(x),dim=1)
-        return x
+        act = F.log_softmax(self.act_out(x),dim=1)
+        tower = F.log_softmax(self.tower_out(x),dim=1)
+        return act, tower
 

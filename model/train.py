@@ -39,7 +39,7 @@ model.to(device)
 # function for training loss, base to be modified later according to
 # the needs of our system
 
-loss_func = nn.NLLLoss()
+loss_func = nn.BCEWithLogitsLoss()
 #optimizer = optim.Adam(model.parameters(), lr=0.001)
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 

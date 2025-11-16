@@ -42,16 +42,22 @@ def loadData(info):
 class DataTransform:
     def procMap(self):
         path = f"cache/map-{self.name}.npz"
+        if os.path.isfile(path) and can_skip:
+            return path, self.mapShape
         print(f"creating {path}", file=sys.stderr)
         self.mapOutput(path)
         return path, self.map_output.shape
     def procMoney(self):
+        if os.path.isfile(path) and can_skip:
+            return path, self.moneyShape
         path = f"cache/money-{self.name}.npy"
         print(f"creating {path}", file=sys.stderr)
         self.moneyOutput(path)
         return path,self.money_output.shape
     def procLabels(self):
         path = f"cache/labels-{self.name}.npy"
+        if os.path.isfile(path) and can_skip:
+            return path, self.labelShape
         print(f"creating {path}", file=sys.stderr)
         self.labelOutput(path)
         return path,self.label_output.shape
@@ -63,6 +69,10 @@ class DataTransform:
         self.map_data = map_data
         self.frame_count = np.max(self.states['frame'])
         self.money = self.states['money']
+        self.can_skip = os.getenv("FORCE_PROCESS") is None
+        self.mapShape = (self.frame_count, inputDim[1], inputDim[0], 3)
+        self.moneyShape = (self.frame_count, 1)
+        self.labelShape = (self.frame_count, 2)
     def mapOutput(self, path):
         self.map_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, inputDim[1], inputDim[0], 3))
         self.map_output[:, :, :, 0] = self.map_data
@@ -77,13 +87,14 @@ class DataTransform:
             self.money_output[row[1]:] = row[2]
         self.money_output.flush()
     def labelOutput(self, path):
-        self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 1))
+        self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 2))
         self.label_output[:] = 0
 
         idx = np.unique(self.states[["x","y","type"]], return_index=True, return_counts=False, axis=0)[1]
         frames = np.zeros((self.frame_count), dtype=bool)
         frames[idx] = True
-        self.label_output[frames] = 1
+        self.label_output[frames,0] = 1
+        self.label_output[frames,1] = self.states[["type"]][frames]
 
         #rev = tower_info.iloc[::-1]
         #idx = np.unique(rev["tower-id"])
