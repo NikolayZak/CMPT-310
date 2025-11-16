@@ -1,5 +1,0 @@
-21,dart_monkey,580,404
-38,beast_handler,591,277
-54,sniper_monkey,1080,63
-90,engineer_monkey,409,396
-114,tack_shooter,602,485

@@ -7,8 +7,8 @@ import os
 
 
 # Folder containing PNG files
-input_folder = "Monkeys_removed_background"
-output_folder = "cropped_Monkeys"
+input_folder = "NumbersNoBG"
+output_folder = "NumbersVector"
 
 # Create output folder if it doesn't exist
 os.makedirs(output_folder, exist_ok=True)
