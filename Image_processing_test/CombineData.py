@@ -117,7 +117,7 @@ def main(money_file, tower_file, upgrade_file, output_file):
                 )
 
 
-            towers_output = ";".join(tower_strings)
+            towers_output = ",".join(tower_strings)
 
             out.write(f"{frame},{money},{towers_output}\n")
 
