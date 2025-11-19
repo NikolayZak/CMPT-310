@@ -85,16 +85,12 @@ while True:
             for (x, y, w, h) in rects:
                 if not is_duplicate(x, y, detected_objects, tolerance=20):
                     detected_objects.append((x, y, w, h))
-                    line = f"{frame_idx},{template_names[i]},{x},{y}"
-                    results.append(line)
-                    print(f"Frame {frame_idx}: {template_names[i]} at (x={x}, y={y})")
+                    results.append(f"{frame_idx},{template_names[i]},{x},{y}\n")
 
 cap.release()
 cv2.destroyAllWindows()
 
 # Write all results at once
 if results:
-    with open(output_txt, "a") as f:
-        f.write("\n".join(results) + "\n")
-
-print(f"Results appended to {output_txt}")
+    with open(output_txt, "w") as f:
+        f.write("".join(results))

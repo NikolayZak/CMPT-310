@@ -9,13 +9,13 @@ if len(sys.argv) < 5:
 
 template_folder = sys.argv[1]
 input_video_path = sys.argv[2]
-output_path = sys.argv[4]
+output_txt = sys.argv[4]
 
 # Crop rectangle (x, y, w, h)
 crop_rect = (360, 20, 195, 45)
 
 stabilizer = []
-window_secs = int(sys.argv[3])
+fps_out = int(sys.argv[3])
 frame_count = 0
 threshold = 0.77
 overlap_thresh = 0.5
@@ -65,18 +65,23 @@ for d in range(10):
     templates[d] = t
 
 cap = cv2.VideoCapture(input_video_path)
-fps = cap.get(cv2.CAP_PROP_FPS)
-frames_per_window = int(window_secs * fps)
+video_fps = cap.get(cv2.CAP_PROP_FPS)
+skip_frames = max(1, round(video_fps / fps_out))
 
 if not cap.isOpened():
     print("Could not open video:", input_video_path)
     sys.exit(1)
 
+frame_idx = 0
 results = []
 while True:
     ret, frame = cap.read()
     if not ret:
         break
+
+    frame_idx += 1
+    if frame_idx % skip_frames != 0:
+        continue
 
     # Crop
     x, y, w, h = crop_rect
@@ -127,20 +132,11 @@ while True:
 
     # Store valid numbers
     if number_str.isdigit():
-        frame_count += 1
-
-        # When the time window is full add to results
-        if frame_count >= frames_per_window:
-            results.append(number_str)
-            frame_count = 0
-
-
-cap.release()
-cv2.destroyAllWindows()
+        results.append(f"{frame_idx // skip_frames},{number_str}\n")
 
 # Write all results at once
 if results:
-    with open(output_path, "a") as f:
-        f.write("\n".join(results) + "\n")
-
-print(f"Results appended to {output_path}")
+    with open(output_txt, "w") as f:
+        f.write("".join(results))
+cap.release()
+cv2.destroyAllWindows()

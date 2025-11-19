@@ -3,7 +3,7 @@ import numpy as np
 import sys
 
 if len(sys.argv) < 4:
-    print("Usage: python3 PreProcessing.py <map_image> <input_video> <frame frequency>")
+    print("Usage: python3 PreProcessing.py <map_image> <input_video> <frame_frequency>")
     sys.exit(1)
 
 map_image_path = sys.argv[1]
@@ -94,4 +94,3 @@ while True:
 cap.release()
 out.release()
 cv2.destroyAllWindows()
-print(f"Preprocessed video saved to {output_video_path}")
