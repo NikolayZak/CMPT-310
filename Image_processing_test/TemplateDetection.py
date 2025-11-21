@@ -15,7 +15,7 @@ video_path = sys.argv[2]
 output_txt = sys.argv[3]
 
 # ----------------------------
-# Load all templates and convert to grayscale
+# Load templates
 # ----------------------------
 templates = []
 template_names = []
@@ -27,9 +27,10 @@ for filename in os.listdir(template_folder):
         if img is None:
             print(f"Failed to load {filename}, skipping.")
             continue
-        # Convert to grayscale for matching
+
         template_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
         h, w = template_gray.shape
+
         templates.append((template_gray, w, h))
         template_names.append(filename.removesuffix("_P.png"))
 
@@ -38,7 +39,7 @@ if not templates:
     sys.exit(1)
 
 # ----------------------------
-# Open input video
+# Open video
 # ----------------------------
 cap = cv2.VideoCapture(video_path)
 if not cap.isOpened():
@@ -46,23 +47,28 @@ if not cap.isOpened():
     sys.exit(1)
 
 # ----------------------------
-# Helper function to avoid duplicate detections
+# Permanent duplicate check
 # ----------------------------
-def is_duplicate(x, y, existing_boxes, tolerance=20):
-    for (ex, ey, ew, eh) in existing_boxes:
-        cx, cy = ex + ew / 2, ey + eh / 2
-        if abs(x + ew/2 - cx) < tolerance and abs(y + eh/2 - cy) < tolerance:
+def is_permanent_duplicate(x, y, w, h, used_positions, tolerance=20):
+    """
+    A detection is forbidden forever if it occurs too close
+    to any previously accepted detection.
+    """
+    cx, cy = x + w/2, y + h/2
+    for (ux, uy, uw, uh) in used_positions:
+        ucx, ucy = ux + uw/2, uy + uh/2
+        if abs(cx - ucx) < tolerance and abs(cy - ucy) < tolerance:
             return True
     return False
 
-# ----------------------------
-# Process each frame
-# ----------------------------
-frame_idx = 0
-threshold = 0.69
-detected_objects = []
+used_positions = []   # stores all past detections forever
+threshold = 0.7
 results = []
+frame_idx = 0
 
+# ----------------------------
+# Process video
+# ----------------------------
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -70,10 +76,8 @@ while True:
 
     frame_idx += 1
 
-    # Convert frame to grayscale
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
-    # Match all templates on this frame
     for i, (template_gray, w, h) in enumerate(templates):
         res = cv2.matchTemplate(frame_gray, template_gray, cv2.TM_CCOEFF_NORMED)
         loc = np.where(res >= threshold)
@@ -81,16 +85,23 @@ while True:
         rects = [[pt[0], pt[1], w, h] for pt in zip(*loc[::-1])]
 
         if rects:
+            # group overlapping hits within this frame
             rects, _ = cv2.groupRectangles(rects, groupThreshold=1, eps=0.5)
+
             for (x, y, w, h) in rects:
-                if not is_duplicate(x, y, detected_objects, tolerance=20):
-                    detected_objects.append((x, y, w, h))
-                    results.append(f"{frame_idx},{template_names[i]},{x},{y}\n")
+                # PERMANENT blocking
+                if is_permanent_duplicate(x, y, w, h, used_positions):
+                    continue
+
+                # accept new detection forever
+                used_positions.append((x, y, w, h))
+                results.append(f"{frame_idx},{template_names[i]},{x},{y}\n")
 
 cap.release()
 cv2.destroyAllWindows()
 
-# Write all results at once
-if results:
-    with open(output_txt, "w") as f:
-        f.write("".join(results))
+# ----------------------------
+# Save results
+# ----------------------------
+with open(output_txt, "w") as f:
+    f.write("".join(results))

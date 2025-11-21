@@ -16,7 +16,7 @@ output_video_path = "preprocessed_video.mp4"
 fps_out = int(sys.argv[3])  # frames per second to process
 crop_rect = (0, 0, 1650, 1080)  # x, y, w, h
 threshold = 0.2  # pixel difference threshold
-min_area = 50  # ignore tiny regions (optional)
+min_area = 500   # ignore tiny regions (optional)
 blur_ksize = (3, 3)  # Gaussian blur kernel
 morph_kernel_size = 9  # Morphological closing kernel size
 
@@ -51,6 +51,7 @@ kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (morph_kernel_size, morph_
 # Process frames
 # ----------------------------
 frame_idx = 0
+
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -78,6 +79,7 @@ while True:
     # Remove small areas
     binary = (binary * 255).astype(np.uint8)
     contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     mask_clean = np.zeros_like(binary)
     for c in contours:
         if cv2.contourArea(c) >= min_area:

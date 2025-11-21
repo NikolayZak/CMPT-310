@@ -1,5 +1,12 @@
-21,dart_monkey,580,404
-38,beast_handler,591,277
-54,sniper_monkey,1080,63
-90,engineer_monkey,409,396
-114,tack_shooter,602,485
+17,ninja_monkey,582,430
+66,wizard_monkey,457,296
+141,tack_shooter,448,430
+312,monkey_village,576,274
+400,sniper_monkey,1298,422
+403,sniper_monkey,717,198
+445,bomb_shooter,705,338
+604,monkey_ace,412,221
+725,glue_gunner,374,280
+833,bomb_shooter,700,430
+915,sniper_monkey,601,83
+1011,alchemist,457,250
