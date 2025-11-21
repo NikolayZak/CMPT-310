@@ -34,6 +34,7 @@ class DataExtractor:
         frameUpdate = []
         towerStatus = self.map.getTowerUpdates()
         for frame in self.map.money:
+            frameUpdate.append((frame[0], frame[1], pd.NA, pd.NA, pd.NA, pd.NA, pd.NA, pd.NA, pd.NA, pd.NA))
             for tower in towerStatus:#TODO replace with numpy search
                 if tower.frame >= frame[0]:
                     frameUpdate.append((frame[0], frame[1]) + tower.dump())

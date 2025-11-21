@@ -29,20 +29,18 @@ offsetFactor=(fieldArea[0], fieldArea[1])
 
 def preprocessState(state):
     # scale coordinates
-    state['frame'] = state['frame'] - state['frame'][0]
     state['x'] = (state['x'] - offsetFactor[0]) // scaleFactor[0]
     state['y'] = (state['y'] - offsetFactor[1]) // scaleFactor[1]
     return state
 
 def loadData(info):
     path, shape = info
-    return np.memmap(path, dtype=np.uint8, mode="read", shape=shape)
+    return np.memmap(path, dtype=np.uint8, mode="r", shape=shape)
 
 
 class DataTransform:
     def procMap(self):
         path = f"cache/map-{self.name}.npz"
-        return path, self.mapShape
         if os.path.isfile(path) and self.can_skip:
             return path, self.mapShape
         print(f"creating {path}", file=sys.stderr)
@@ -50,7 +48,6 @@ class DataTransform:
         return path, self.map_output.shape
     def procMoney(self):
         path = f"cache/money-{self.name}.npy"
-        return path, self.moneyShape
         if os.path.isfile(path) and self.can_skip:
             return path, self.moneyShape
         print(f"creating {path}", file=sys.stderr)
@@ -74,12 +71,14 @@ class DataTransform:
         self.can_skip = os.getenv("FORCE_PROCESS") is None
         self.mapShape = (self.frame_count, inputDim[1], inputDim[0], 3)
         self.moneyShape = (self.frame_count, 1)
-        self.labelShape = (self.frame_count, 2)
+        self.labelShape = (self.frame_count, 5)
     def mapOutput(self, path):
         self.map_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, inputDim[1], inputDim[0], 3))
         self.map_output[:, :, :, 0] = self.map_data
         self.map_output[:, :, :, 1:2] = 0
-        for row in self.states[["frame", "y", "x", "type"]].astype(int).itertuples():
+        val,idx = np.unique(self.states[["x","y","type"]], return_index=True, return_counts=False, axis=0)
+        idx = idx[np.isnan(val[:,0]) == False]
+        for row in self.states.iloc[idx][["frame", "y", "x", "type"]].astype(int).itertuples():
             self.map_output[row[1]:,row[2], row[3], 1] = row[4]+1
         self.map_output.flush()
     def moneyOutput(self, path):
@@ -91,14 +90,15 @@ class DataTransform:
         self.label_output = np.memmap(path, dtype=np.uint8, mode="write", shape=(self.frame_count, 5))
         self.label_output[:] = 0
 
-        a,idx = np.unique(self.states[["x","y","type"]], return_index=True, return_counts=False, axis=0)
-        frames = np.zeros((self.frame_count), dtype=bool)
-        frames[self.states["frame"][idx]-1] = True
-        frames[(self.states["type"]==0)-1] = False
+        val,idx = np.unique(self.states[["x","y","type"]], return_index=True, return_counts=False, axis=0)
+        idx = idx[np.isnan(val[:,0]) == False]
+        place = np.zeros((self.frame_count, 3), dtype=int)
+        frames = self.states["frame"][idx]-1
+        place[frames, 0] = self.states["type"][idx]
+        place[frames, 1] = self.states["x"][idx]
+        place[frames, 2] = self.states["y"][idx]
         self.label_output[frames,0] = 1
-        self.label_output[frames,1] = self.states["type"][idx]
-        self.label_output[frames,2] = self.states["x"][idx]
-        self.label_output[frames,3] = self.states["y"][idx]
+        self.label_output[:,1:4] = place
 
         #rev = tower_info.iloc[::-1]
         #idx = np.unique(rev["tower-id"])
@@ -107,18 +107,15 @@ class DataTransform:
         self.label_output.flush()
 
 def worker(args):
-    import sys#TODO REMOVE
     import subprocess
     proc = subprocess.Popen([sys.executable, os.path.join(os.path.dirname(__file__), "datatransform.py")], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     stdout,_ = proc.communicate(input=pickle.dumps(args, protocol=pickle.HIGHEST_PROTOCOL))
-    sys.exit(0)#TODO REMOVE
     return pickle.loads(stdout)
 
 def processAll(data):
     #pool = ThreadPool(os.cpu_count())
-    #pool = ThreadPool(3)
-    worker(data[0])
-    #return pool.map(worker, data)
+    pool = ThreadPool(3)
+    return pool.map(worker, data)
 
 if __name__ == "__main__":
     import sys

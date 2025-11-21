@@ -39,7 +39,13 @@ model.to(device)
 # function for training loss, base to be modified later according to
 # the needs of our system
 
-loss_func = nn.BCEWithLogitsLoss()
+#nn.BCEWithLogitsLoss(),
+loss_funcs = [
+nn.NLLLoss(),
+nn.NLLLoss(),
+nn.NLLLoss(),
+nn.NLLLoss()
+]
 #optimizer = optim.Adam(model.parameters(), lr=0.001)
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
@@ -57,7 +63,7 @@ for epoch in range(epochs):
         optimizer.zero_grad()
 
         output = model(in_map, in_money)
-        loss = loss_func(output, label)
+        loss = sum([loss_funcs[i](output[i], label[:, i]) for i in range(len(loss_funcs))])
 
         loss.backward()
         optimizer.step()
@@ -72,16 +78,22 @@ for epoch in range(epochs):
     totals = {i:0 for i in range(4)}
     with torch.no_grad():
         for data in test:
-            category = data[1].item()
+            category = [data[1][:,i].item() for i in range(5)]
             input, label = data[0], data[1].to(device)
             in_map, in_money = input[0].to(device), input[1].to(device)
             output = model(in_map, in_money)
-            _, predicted = torch.max(output, 1)
+            _, predicted_act = torch.max(output[0], 1)
+            _, predicted_tower = torch.max(output[1], 1)
+            _, predicted_x = torch.max(output[2], 1)
+            _, predicted_y = torch.max(output[3], 1)
+            #_, predicted_upgrade = torch.max(output[4], 1)
+            predicted_upgrade = 0
             total += 1
-            totals[category] += 1
-            if predicted == label:
+            totals[category[0]] += 1
+            predicted = [predicted_act, predicted_tower, predicted_x, predicted_y, predicted_upgrade]
+            if list(predicted) == list(label):
                 correct += 1
-                correct_types[category] += 1
+                correct_types[category[0]] += 1
     accuracy = {i:correct_types[i]/totals[i] for i in range(4) if totals[i] > 0}
     print(f"Epoch {epoch+1}/{epochs}, accuracy: {correct / total}")
     print(f"Category accuracy: {accuracy}")

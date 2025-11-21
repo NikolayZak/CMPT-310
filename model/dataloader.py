@@ -38,4 +38,4 @@ class GameDataset(Dataset):
     def __getitem__(self, index):
         map_index = np.argmax(index >= self.file_offsets)
         index = index - self.file_offsets[map_index]
-        return (self.map_data[map_index][index].astype(np.float32), self.money[map_index][index]), self.labels[map_index][index,0]
+        return (np.copy(self.map_data[map_index][index].astype(np.float32)), np.copy(self.money[map_index][index])), np.copy(self.labels[map_index][index])
