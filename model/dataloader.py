@@ -17,18 +17,20 @@ class GameDataset(Dataset):
         self.map_data = []
         self.money = []
         data_transform = []
-        for file in os.listdir(state_path):
-            file_name = os.path.basename(file).split('.')[:-1]
-            name = "".join(file_name[:-1])
-            map = file_name[-1]
-            path = os.path.join(state_path, file)
-            if long_fmt:
-                raw_state = pd.read_csv(path)
-            else:
-                raw_state = convertKeyFrame2KeyTowerFrame(pd.read_csv(path))
-            self.file_offsets.append(self.file_offsets[-1] + raw_state.shape[0])
-            data_transform.append((self.maps[map], path, name, long_fmt))
+        for map in os.listdir(state_path):
+            map_path = os.path.join(state_path, map)
+            for file in os.listdir(map_path):
+                name = ".".join(os.path.basename(file).split('.')[:-1])
+                path = os.path.join(map_path, file)
+                if long_fmt:
+                    raw_state = pd.read_csv(path)
+                else:
+                    raw_state = convertKeyFrame2KeyTowerFrame(pd.read_csv(path))
+                data_transform.append((self.maps[map], path, name, long_fmt))
         files = processAll(data_transform)
+        for file in files:
+            map_data = file[0]
+            self.file_offsets.append(self.file_offsets[-1] + map_data[1][0])
         self.map_data = [loadData(data[0]) for data in files]
         self.money = [loadData(data[1]) for data in files]
         self.labels = [loadData(data[2]) for data in files]
@@ -36,6 +38,6 @@ class GameDataset(Dataset):
     def __len__(self):
         return sum([data.shape[0] for data in self.map_data])
     def __getitem__(self, index):
-        map_index = np.argmax(index >= self.file_offsets)
+        map_index = np.argmin(index >= self.file_offsets) -1
         index = index - self.file_offsets[map_index]
         return (np.copy(self.map_data[map_index][index].astype(np.float32)), np.copy(self.money[map_index][index])), np.copy(self.labels[map_index][index])
