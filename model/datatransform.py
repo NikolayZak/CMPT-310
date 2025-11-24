@@ -6,14 +6,22 @@ from multiprocessing.pool import ThreadPool
 import os
 import sys
 
-def convertKeyFrame2KeyTowerFrame(path, out):
-    data = pd.read_csv(path,sep='`', dtype=str,names=['data']) # do not seperate(need variable columns)
+def convertKeyFrame2KeyTowerFrame(path,name):
+    print("converting "+path, file=sys.stderr)
+    cachepath = f"cache/preprocess-{name}.csv"
+    #if os.path.isfile(cachepath) and os.getenv("FORCE_PROCESS") is None:
+    #    return pd.read_csv(cachepath)
+    data = pd.read_csv(path,sep='`', dtype=str,names=['data'], skiprows=1) # do not seperate(need variable columns)
+    data['data'] = data['data'].str.rstrip(',')
     data = data['data'].str.split(',', expand=True)
     rows = []
     for i in range((data.shape[1]-3)//6):
-        rows.append(data[[0,1]+[i*6+j+2 for j in range(6)]].dropna().astype(int))
-    return pd.DataFrame(data=np.concatenate(rows,axis=0), columns=["frame", "money", "type", "x", "y", "upgrade_1", "upgrade_2", "upgrade_3"])
-
+        rows.append(data[[0,1,0]+[i*6+j+2 for j in range(6)]].dropna().astype("Int64"))
+    columns=["frame", "money", "tower-id", "type", "x", "y", "upgrade_1", "upgrade_2", "upgrade_3"]
+    data = pd.concat((pd.DataFrame(data=np.concatenate(rows,axis=0), columns=columns),
+            data[data[[2]].isna().any(axis=1)][list(range(9))].astype("Int64").rename(columns=lambda x: columns[x]))).sort_values(by=["frame"])
+    data.to_csv(cachepath)
+    return pd.read_csv(cachepath)
 
 
 
@@ -124,7 +132,7 @@ if __name__ == "__main__":
     if long_fmt:
         raw_state = pd.read_csv(state)
     else:
-        raw_state = convertKeyFrame2KeyTowerFrame(pd.read_csv(state))
+        raw_state = convertKeyFrame2KeyTowerFrame(state, name)
     map = np.loadtxt(map, delimiter=" ", dtype=int)
     transformer = DataTransform(map, raw_state, name)
     print(f"processing {name}", file=sys.stderr)

@@ -20,13 +20,10 @@ class GameDataset(Dataset):
         for map in os.listdir(state_path):
             map_path = os.path.join(state_path, map)
             for file in os.listdir(map_path):
+                ext = os.path.basename(file).split('.')[-1]
                 name = ".".join(os.path.basename(file).split('.')[:-1])
                 path = os.path.join(map_path, file)
-                if long_fmt:
-                    raw_state = pd.read_csv(path)
-                else:
-                    raw_state = convertKeyFrame2KeyTowerFrame(pd.read_csv(path))
-                data_transform.append((self.maps[map], path, name, long_fmt))
+                data_transform.append((self.maps[map], path, name, ext == "csv"))
         files = processAll(data_transform)
         for file in files:
             map_data = file[0]
