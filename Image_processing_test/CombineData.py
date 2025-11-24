@@ -1,6 +1,24 @@
 import csv
 import sys
 
+def is_predecessor(prev, curr):
+    """
+    True if curr is exactly prev + 1 in exactly one upgrade path.
+    Format: (name, u1, u2, u3)
+    """
+    _, p1, p2, p3 = prev
+    _, c1, c2, c3 = curr
+
+    d1 = c1 - p1
+    d2 = c2 - p2
+    d3 = c3 - p3
+
+    # Exactly one upgrade increased by +1
+    return (
+        ((d1 == 1) + (d2 == 1) + (d3 == 1)) == 1 and
+        d1 >= 0 and d2 >= 0 and d3 >= 0
+    )
+
 
 tower_types = (
     "dart_monkey", "boomerang_monkey", "bomb_shooter", "tack_shooter", 
@@ -76,7 +94,7 @@ def main(money_file, tower_file, upgrade_file, output_file):
     )
 
     # Tower state tracking
-    active_towers = {}  # name -> {x,y,u1,u2,u3}
+    active_towers = []  # list of {name,x,y,u1,u2,u3}
 
     # Sort events by frame
     tower_events.sort(key=lambda x: x[0])
@@ -88,37 +106,65 @@ def main(money_file, tower_file, upgrade_file, output_file):
     with open(output_file, "w") as out:
         out.write("frame,money,towers\n")
 
+        
         for frame in range(1, max_frame + 1):
 
-            # apply tower spawns
+            # --- handle tower spawns ---
             while ti < len(tower_events) and tower_events[ti][0] == frame:
                 _, name, x, y = tower_events[ti]
-                active_towers[name] = {"x": x, "y": y, "u1": 0, "u2": 0, "u3": 0}
+                active_towers.append({
+                    "name": name,
+                    "x": x,
+                    "y": y,
+                    "u1": 0,
+                    "u2": 0,
+                    "u3": 0
+                })
                 ti += 1
 
-            # apply upgrades
+            # --- handle upgrades ---
             while ui < len(upgrade_events) and upgrade_events[ui][0] == frame:
                 _, name, u1, u2, u3 = upgrade_events[ui]
-                if name in active_towers:
-                    active_towers[name]["u1"] = u1
-                    active_towers[name]["u2"] = u2
-                    active_towers[name]["u3"] = u3
+
+                candidates = [t for t in active_towers if t["name"] == name]
+
+                # desired new upgrade path
+                new = (name, u1, u2, u3)
+
+                # find tower whose upgrades are predecessor
+                match = None
+                for t in candidates:
+                    prev = (name, t["u1"], t["u2"], t["u3"])
+                    if is_predecessor(prev, new):
+                        match = t
+                        break
+
+                if match:
+                    match["u1"] = u1
+                    match["u2"] = u2
+                    match["u3"] = u3
+
                 ui += 1
 
-            # money for this frame
-            money = money_data.get(frame, 0)
+            # median of 5 frames
+            values = []
+            for df in (-2, -1, 0, 1, 2):
+                f2 = frame + df
+                values.append(money_data.get(f2, 0))
+
+            values.sort()
+            money = values[len(values) // 2]  # median of 5 elements
+
 
             # Build tower string
             tower_strings = []
-            for name, data in active_towers.items():
-                tower_id = tower_enum.get(name, 0)  # use 'name', not data['name']
+            for t in active_towers:
+                tower_id = tower_enum.get(t["name"], 0)
                 tower_strings.append(
-                    f"{tower_id},{data['x']},{data['y']},{data['u1']},{data['u2']},{data['u3']}"
+                    f"{tower_id},{t['x']},{t['y']},{t['u1']},{t['u2']},{t['u3']}"
                 )
 
-
             towers_output = ",".join(tower_strings)
-
             out.write(f"{frame},{money},{towers_output}\n")
 
 

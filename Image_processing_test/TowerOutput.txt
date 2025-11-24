@@ -1,8 +1,7 @@
-18,ninja_monkey,573,323
-86,tack_shooter,571,429
-256,bomb_shooter,449,449
-319,monkey_village,421,274
-462,sniper_monkey,282,131
-511,heli_pilot,388,135
-855,glue_gunner,345,425
-1018,mortar_monkey,267,206
+10,boomerang_monkey,583,426
+329,wizard_monkey,581,288
+419,monkey_village,421,289
+503,sniper_monkey,260,131
+619,bomb_shooter,442,470
+661,sniper_monkey,360,131
+780,heli_pilot,166,294
