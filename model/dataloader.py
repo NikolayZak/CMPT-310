@@ -25,16 +25,27 @@ class GameDataset(Dataset):
                 path = os.path.join(map_path, file)
                 data_transform.append((self.maps[map], path, name, ext == "csv"))
         files = processAll(data_transform)
-        for file in files:
-            map_data = file[0]
-            self.file_offsets.append(self.file_offsets[-1] + map_data[1][0])
+
         self.map_data = [loadData(data[0]) for data in files]
         self.money = [loadData(data[1]) for data in files]
         self.labels = [loadData(data[2]) for data in files]
+        self.filter = []
+        for i in range(len(self.labels)):
+            threshold = np.sum([self.labels[i][0] == 0])/self.labels[i].shape[0]
+            filter = np.random.uniform(size=len(self.labels[i])) < threshold
+            print("threshold" ,float(threshold))
+            filter[self.labels[i][:, 0] != 0] = True
+            self.file_offsets.append(self.file_offsets[-1] + np.sum(filter))
+            self.filter.append(filter)
         self.file_offsets = np.array(self.file_offsets[:-1])
+        self.length = sum([np.sum(data) for data in self.filter])
     def __len__(self):
-        return sum([data.shape[0] for data in self.map_data])
+        return self.length  * 10
     def __getitem__(self, index):
+        index = index % self.length
         map_index = np.argmin(index >= self.file_offsets) -1
         index = index - self.file_offsets[map_index]
-        return (np.copy(self.map_data[map_index][index].astype(np.float32)), np.copy(self.money[map_index][index])), np.copy(self.labels[map_index][index])
+        filter = self.filter[map_index]
+        return (np.copy(self.map_data[map_index][filter][index].astype(np.float32)), np.copy(self.money[map_index][filter][index])), np.copy(self.labels[map_index][filter][index])
+    def resetSeed(self):
+        return np.random.seed(0)

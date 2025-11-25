@@ -7,7 +7,6 @@ from dataloader import GameDataset
 from torch.utils.data import DataLoader, random_split
 import sys
 
-
 if len(sys.argv) < 3:
     # change these if not setting cli flags
     states = ""
@@ -47,6 +46,7 @@ nn.NLLLoss(),
 nn.NLLLoss(),
 nn.NLLLoss()
 ]
+loss_multi = [1,1, 1, 1]
 #optimizer = optim.Adam(model.parameters(), lr=0.001)
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
@@ -64,7 +64,7 @@ for epoch in range(epochs):
         optimizer.zero_grad()
 
         output = model(in_map, in_money)
-        loss = sum([loss_funcs[i](output[i], label[:, i]) for i in range(len(loss_funcs))])
+        loss = sum([loss_funcs[j](output[j], label[:, j])*loss_multi[j] for j in range(len(loss_funcs))])
 
         loss.backward()
         optimizer.step()
@@ -73,6 +73,7 @@ for epoch in range(epochs):
         if i % 100 == 99:
             print(f"[epoch: {epoch+1}, {i}] loss: {run_loss}")
             run_loss = 0
+        i+=1
     total = 0
     correct = 0
     correct_types = {i:0 for i in range(4)}
@@ -92,9 +93,10 @@ for epoch in range(epochs):
             total += 1
             totals[category[0]] += 1
             predicted = [predicted_act, predicted_tower, predicted_x, predicted_y, predicted_upgrade]
-            if list(predicted) == list(label):
-                correct += 1
-                correct_types[category[0]] += 1
+            for i in range(len(predicted)):
+                if predicted[i] == label.tolist()[0][i]:
+                    correct += 1
+                    correct_types[category[0]] += 1
     accuracy = {i:correct_types[i]/totals[i] for i in range(4) if totals[i] > 0}
     print(f"Epoch {epoch+1}/{epochs}, accuracy: {correct / total}")
     print(f"Category accuracy: {accuracy}")

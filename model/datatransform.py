@@ -108,9 +108,6 @@ class DataTransform:
         self.label_output[frames,0] = 1
         self.label_output[:,1:4] = place
 
-        #rev = tower_info.iloc[::-1]
-        #idx = np.unique(rev["tower-id"])
-        #choice[rev["placed"][idx]+1] = 2
         
         self.label_output.flush()
 
