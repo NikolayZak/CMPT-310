@@ -16,19 +16,22 @@ import numpy as np
 # source of the base code we are using as a springboard
 # https://www.youtube.com/watch?v=e5CDe00B3vE
 
+
+
 # base system for our neural net, will need to make adjustments
 class makeChoiceClassifier(nn.Module):
     def __init__(self, num_classes=4):
         # Where define all parts of model
         super().__init__()
-        self.input = nn.Linear(76*118*3, 1048)
-        self.moneyA = nn.Linear(1048, 524)
-        self.moneyB = nn.Linear(1048, 524)
-        self.hidden = nn.Linear(1048, 524)
-        self.act_out = nn.Linear(524,4)
-        self.tower_out = nn.Linear(524, 25)
-        self.x_out = nn.Linear(524, 118)
-        self.y_out = nn.Linear(524, 76)
+        model_size = 1048
+        self.input = nn.Linear(76*118*3, model_size)
+        self.moneyA = nn.Linear(model_size, (model_size // 2))
+        self.moneyB = nn.Linear(model_size, (model_size // 2))
+        self.hidden = nn.Linear(model_size, (model_size // 2))
+        self.act_out = nn.Linear((model_size // 2),4)
+        self.tower_out = nn.Linear((model_size // 2), 25)
+        self.x_out = nn.Linear((model_size // 2), 118)
+        self.y_out = nn.Linear((model_size // 2), 76)
         
     def forward(self, field, money):
         # connect parts defined and return output
