@@ -32,7 +32,8 @@ class makeChoiceClassifier(nn.Module):
         
     def forward(self, field, money):
         # connect parts defined and return output
-        x = field.view(-1, 76*118*3)
+        # x = field.view(-1, 76*118*3)
+        x = field.reshape(-1, 76*118*3)
         money = money.view(-1, 1)
         x = F.relu(self.input(x))
         x = F.relu(torch.add(self.moneyA(x), money*self.moneyB(x)))
