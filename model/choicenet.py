@@ -21,14 +21,14 @@ class makeChoiceClassifier(nn.Module):
     def __init__(self, num_classes=4):
         # Where define all parts of model
         super().__init__()
-        self.input = nn.Linear(76*118*3, 128)
-        self.moneyA = nn.Linear(128, 64)
-        self.moneyB = nn.Linear(128, 64)
-        self.hidden = nn.Linear(128, 64)
-        self.act_out = nn.Linear(64,4)
-        self.tower_out = nn.Linear(64, 25)
-        self.x_out = nn.Linear(64, 118)
-        self.y_out = nn.Linear(64, 76)
+        self.input = nn.Linear(76*118*3, 1048)
+        self.moneyA = nn.Linear(1048, 524)
+        self.moneyB = nn.Linear(1048, 524)
+        self.hidden = nn.Linear(1048, 524)
+        self.act_out = nn.Linear(524,4)
+        self.tower_out = nn.Linear(524, 25)
+        self.x_out = nn.Linear(524, 118)
+        self.y_out = nn.Linear(524, 76)
         
     def forward(self, field, money):
         # connect parts defined and return output

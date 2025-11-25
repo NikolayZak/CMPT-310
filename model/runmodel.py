@@ -29,7 +29,7 @@ model.eval()
 field_tensor = load_map("binary_maps/meadows.txt").to(device)
 
 # ==== MONEY ====
-money_tensor = torch.tensor([[650]], dtype=torch.float32).to(device)
+money_tensor = torch.tensor([[1150]], dtype=torch.float32).to(device)
 
 # ==== RUN ====
 with torch.no_grad():

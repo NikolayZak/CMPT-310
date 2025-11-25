@@ -5,6 +5,7 @@ from datatransform import processAll, loadData, convertKeyFrame2KeyTowerFrame
 import pandas as pd
 import os
 
+downsample = 0.2
 dim = (118, 76)
 
 class GameDataset(Dataset):
@@ -31,7 +32,7 @@ class GameDataset(Dataset):
         self.labels = [loadData(data[2]) for data in files]
         self.filter = []
         for i in range(len(self.labels)):
-            threshold = np.sum([self.labels[i][0] == 0])/self.labels[i].shape[0]
+            threshold = downsample * np.sum([self.labels[i][0] == 0])/self.labels[i].shape[0]
             filter = np.random.uniform(size=len(self.labels[i])) < threshold
             print("threshold" ,float(threshold))
             filter[self.labels[i][:, 0] != 0] = True
