@@ -55,7 +55,7 @@ if __name__ == "__main__":
             print(f"{sys.argv[0]} [path to model] [path to map] <--stub>")
         model = sys.argv[1]
     else:
-        model = "model/model.pth"
+        model = "model_weights/model.pth"
     if len(sys.argv) > 2:
         map = sys.argv[2]
     else:
