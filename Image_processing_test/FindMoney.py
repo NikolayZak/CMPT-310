@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import os
 
-template_folder = "template_folder"
+template_folder = "../Images/NumbersVector"
 # Load templates
 templates = {}
 for d in range(10):
