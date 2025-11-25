@@ -6,3 +6,4 @@ cache
 
 
 *.mp4
+model/*.pth
