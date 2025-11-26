@@ -4,6 +4,8 @@ import numpy as np
 import sys
 sys.path.append('BTDautogui')
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 3 and sys.argv[3] == "--stub":
@@ -25,7 +27,7 @@ class Player:
         self.map[:, :, 0] = map
         self.money = 0
         self.model = makeChoiceClassifier()
-        self.model.load_state_dict(torch.load(model, weights_only=True))
+        self.model.load_state_dict(torch.load(model, weights_only=True, map_location=device))
     def place(self, action):
         place_monkey(action[0], getCoord(action[1], action[2]))
         self.map[action[2], action[1], 1] = action[0] + 1
