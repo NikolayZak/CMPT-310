@@ -34,8 +34,6 @@ class Player:
     def applyAction(self, action):
         if action == 1:
             self.place(action[1:])
-        elif action == 2:
-            pass
         noOp()
     def evaluateMove(self):
         with torch.no_grad():
@@ -44,6 +42,7 @@ class Player:
             _, tower = torch.max(output[1], 1)
             _, x = torch.max(output[2], 1)
             _, y = torch.max(output[3], 1)
+        print([act, tower, x, y])
         return [act, tower, x, y]
     def makeChoice(self):
         money = getMoney()
