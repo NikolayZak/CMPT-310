@@ -2,8 +2,8 @@ import pyautogui
 import time
 from pynput.keyboard import Key, Controller
 import numpy as np
-import money
-
+#import money
+import FindMoney as money
 
 ### GAME HOTKEYS / DATA VALUES 
 
@@ -297,7 +297,8 @@ def next_round():
     keyB.release(Key.space)
 
 def getMoney():
-    return money.getMoney(capture_screen())
+    #return money.getMoney(capture_screen())
+    return money.extractMoney(capture_screen())
 
 def noOp():
     pass 
