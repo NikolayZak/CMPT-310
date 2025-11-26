@@ -32,7 +32,7 @@ class Player:
         coord = (action[2],action[1])
         if self.map[coord[0], coord[1], 1] > 0:
             for offset in ((1,0),(0,1),(1,1),(-1,0), (-1,-1),(0,-1)):
-                newcoord = (coord[0] + offset[0], coord[1] + offset[1])
+                newcoord = (coord[0] + offset[0]*5, coord[1] + offset[1]*5)
                 if self.map[newcoord[0], newcoord[1], 1] == 0:
                     coord = newcoord
                     break
