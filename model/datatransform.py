@@ -71,6 +71,8 @@ class DataTransform:
     def preprocess(self):
         return self.procMap(), self.procMoney(), self.procLabels()
     def __init__(self, map_data, states, name):
+        if not os.path.exists('cache'):
+            os.mkdir('cache')
         self.name = name
         self.states = preprocessState(states)
         self.map_data = map_data
