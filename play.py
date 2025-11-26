@@ -42,14 +42,14 @@ class Player:
             _, tower = torch.max(output[1], 1)
             _, x = torch.max(output[2], 1)
             _, y = torch.max(output[3], 1)
-        print([act, tower, x, y])
-        return [act, tower, x, y]
+        return [act.item(), tower.item(), x.item(), y.item()]
     def makeChoice(self):
         money = getMoney()
         if not money is None:
             self.money = money
         print(f"Money: {money}")
         action = self.evaluateMove()
+        print(action)
         self.applyAction(action);
 
 if __name__ == "__main__":
