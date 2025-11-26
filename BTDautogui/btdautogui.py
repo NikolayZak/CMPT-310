@@ -8,7 +8,6 @@ import FindMoney as money
 ### GAME HOTKEYS / DATA VALUES 
 
 MONKEY_KEYS = [
-    "u",  # 0 - Hero
     "q",  # 1 - Dart
     "w",  # 2 - Boomerang
     "e",  # 3 - Bomb
@@ -44,7 +43,6 @@ DIFF_MULTIES = [
 ]
 
 NORMAL_COSTS = [
-    99999, #hero
     200, #dart
     315, #boomer
     375, #bomb
@@ -73,11 +71,6 @@ NORMAL_COSTS = [
 ]
 
 NORMAL_UPGRADES = [
-    [ # HERO
-     [99999,99999,99999,99999,99999],
-     [99999,99999,99999,99999,99999],
-     [99999,99999,99999,99999,99999]   
-    ],     
     [ # Dart monkey
      [140, 200, 320, 1800, 15000],
      [100, 190, 450, 7200, 45000],

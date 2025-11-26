@@ -23,7 +23,7 @@ class makeChoiceClassifier(nn.Module):
     def __init__(self, num_classes=4):
         # Where define all parts of model
         super().__init__()
-        model_size = 1048
+        model_size = 2096
         self.input = nn.Linear(76*118*3, model_size)
         self.moneyA = nn.Linear(model_size, (model_size // 2))
         self.moneyB = nn.Linear(model_size, (model_size // 2))

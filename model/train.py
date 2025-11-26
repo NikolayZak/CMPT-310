@@ -48,12 +48,12 @@ nn.NLLLoss()
 ]
 loss_multi = [1,1, 1, 1]
 #optimizer = optim.Adam(model.parameters(), lr=0.001)
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
 # number of runs through our training data
 # commented out for now as there is no real use rn as no data
 # to train and test on
-epochs = 200
+epochs = 20
 run_loss = 0
 for epoch in range(epochs):
     for i, data in enumerate(train):
