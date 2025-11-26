@@ -32,7 +32,7 @@ class Player:
         place_monkey(action[0], getCoord(action[1], action[2]))
         self.map[action[2], action[1], 1] = action[0] + 1
     def applyAction(self, action):
-        if action == 1:
+        if action[0] == 1:
             self.place(action[1:])
         noOp()
     def evaluateMove(self):
