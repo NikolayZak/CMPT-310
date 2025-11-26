@@ -29,8 +29,16 @@ class Player:
         self.model = makeChoiceClassifier()
         self.model.load_state_dict(torch.load(model, weights_only=True, map_location=device))
     def place(self, action):
-        place_monkey(action[0], getCoord(action[1], action[2]))
-        self.map[action[2], action[1], 1] = action[0] + 1
+        coord = (action[2],action[1])
+        if self.map[coord[0], coord[1], 1] > 0:
+            for offset in ((1,0),(0,1),(1,1),(-1,0), (-1,-1),(0,-1)):
+                newcoord = (coord[0] + offset[0], coord[1] + offset[1])
+                if self.map[newcoord[0], newcoord[1], 1] == 0:
+                    coord = newcoord
+                    break
+        place_monkey(action[0], getCoord(coord[1], coord[0]))
+        self.map[coord[0], coord[1], 1] = action[0] + 1
+        
     def applyAction(self, action):
         if action[0] == 1:
             self.place(action[1:])
