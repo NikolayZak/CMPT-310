@@ -1,6 +1,8 @@
 from model.choicenet import makeChoiceClassifier
 import torch
 import numpy as np
+import sys
+sys.path.append('BTDautogui')
 
 if __name__ == "__main__":
     import sys
