@@ -7,17 +7,6 @@ import torch.nn.functional as F
 import pandas as pd
 import numpy as np
 
-# will need to load the data in later to test and see
-# loading in the data that is an array form of the map
-# test array for now
-# note to anyone touching this, must put array as such
-# for testing, training, etc
-
-# source of the base code we are using as a springboard
-# https://www.youtube.com/watch?v=e5CDe00B3vE
-
-
-
 # base system for our neural net, will need to make adjustments
 class makeChoiceClassifier(nn.Module):
     def __init__(self, num_classes=4):
