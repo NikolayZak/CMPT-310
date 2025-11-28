@@ -135,8 +135,8 @@ while True:
         results.append(f"{frame_idx // skip_frames},{number_str}\n")
 
 # Write all results at once
-if results:
-    with open(output_txt, "w") as f:
-        f.write("".join(results))
+
+with open(output_txt, "w") as f:
+    f.write("".join(results))
 cap.release()
 cv2.destroyAllWindows()

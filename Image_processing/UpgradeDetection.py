@@ -169,8 +169,7 @@ while True:
                 last_state = current
                 break
 
-# Write all results at once
-if results:
-    with open(output_txt, "w") as f:
-        f.write("".join(results))
+
+with open(output_txt, "w") as f:
+    f.write("".join(results))
 cap.release()
