@@ -1,0 +1,7 @@
+To run the Image processing to extract data files you need to run FullDetection.py using a similar command to below
+
+python ./FullDetection.py test_data.mp4 monkey_meadow.png final_output.txt
+
+test_data is provided so this command will run
+
+Note: to run for the new test_data you must delete the previous intermediate files which show a more complicated dataset collected.

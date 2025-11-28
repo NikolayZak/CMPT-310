@@ -3,11 +3,11 @@ import numpy as np
 import sys
 import os
 
-template_folder = "Images/NumbersVector"
+template_folder = "../Images/NumbersVector"
 # Load templates
 templates = {}
 for d in range(10):
-    path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))),template_folder), f"{d}_P.png")
+    path = os.path.join(template_folder, f"{d}_P.png")
     t = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     if t is None:
         print(f"Missing template: {path}")
@@ -48,19 +48,16 @@ def nms_boxes(boxes, scores, overlapThresh):
     return pick
 
 def extractMoney(frame):
-    # Crop rectangle (x, y, w, h)
     crop_rect = (360, 20, 195, 45)
     threshold = 0.77
     overlap_thresh = 0.5
     digit_gap = 100
 
-    # Crop
     x, y, w, h = crop_rect
     cropped = frame[y:y+h, x:x+w]
     gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
 
     final_digits = []
-
     for digit, templ in templates.items():
         tH, tW = templ.shape[:2]
         res = cv2.matchTemplate(gray, templ, cv2.TM_CCOEFF_NORMED)
@@ -80,22 +77,18 @@ def extractMoney(frame):
             x, y, w, h = boxes[idx]
             final_digits.append((x, digit))
 
-    # Sort digits left-to-right
     final_digits.sort(key=lambda x: x[0])
 
-    # Check if there are any digits detected
     if final_digits:
-        # Remove outlier digits on the left
         keep_index = 0
         for i in range(1, len(final_digits)):
             x_prev, _ = final_digits[i-1]
             x_curr, _ = final_digits[i]
-            if x_curr - x_prev > digit_gap:
+            if x_curr - x_prev > digit_gap: # check health digits aren't included
                 keep_index = i
 
         final_digits = final_digits[keep_index:]
 
-        # Build number string
         number_str = "".join(str(d) for _, d in final_digits)
     else:
         number_str = ""
