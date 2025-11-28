@@ -23,8 +23,6 @@ def color(rgb,aimColor):
     aimColor = np.array(aimColor)
     return np.all(np.abs(rgb-aimColor)<10)
 
-# need to figure out the rgb values that are different enough that it won't
-# affect
 for i in range(mapArray.shape[0]): # for loop traverses through to convert map
     for j in range(mapArray.shape[1]):
         temp = mapArray[i][j]
@@ -45,18 +43,14 @@ for i in range(mapArray.shape[0]): # for loop traverses through to convert map
             mapSimple[i][j] = 0 # check path 
 
 # merging edge map with the full map to get rid of image edge issues
-#edgeMap = edgeMap.filter(ImageFilter.BLUR)
 # we put the edge map into black and white, add a thick border to signify spacing
 # and then run code on interpretting it
 edgeMap = edgeMap.convert('L')
 edgeMap = edgeMap.point(lambda x: 255 if x > 40 else 0)
 edgeMap = edgeMap.convert('RGB')
 edgeMap = edgeMap.filter(ImageFilter.MaxFilter(5))
-# edgeMap.save("edgeMap.png") # for checking test map return values
 mapSimple[np.sum(edgeMap,axis = 2) != 0] = -1
 mapSimple = mapSimple.astype(int)
-
-# np.savetxt('simpleMap.txt',mapSimple,fmt="%i") testing code
 
 # now to resize the data into 14 * 14 pixel squares
 mapFinal = np.zeros([76,118])
@@ -72,9 +66,5 @@ for i in range(mapFinal.shape[0]):
         index = np.argmax(counts)# get the index of the value with highest count      
         mapFinal[i][j] = values[index] #update new map value accordingly
 
-# print(np.unique(mapArray,axis = 0)) for testing
-
-# print(mapFinal)
-# print(mapFinal.shape)
-
 np.savetxt('tester.txt',mapFinal,fmt = '%d')
+
