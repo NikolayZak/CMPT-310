@@ -1,4 +1,10 @@
 Where the manually color blocked maps go to be read in for MapPipeline.
 
+Color guide for those who might want to try and train a different map than what has been prepared in the maps folder.
 The colors used to manually block out the map and their meaning are as follows:
 
+#5B5B5B Gray for the Path the Bloons travel on, read as 0 in the pipeline
+#491C00 Green for the Empty Land Space the Monkeys can be placed on, read as 1 in the pipeline
+#70CDFF Blue for the Empty Water Space the Water Monkeys can be placed on, read as 2 in the pipeline
+#FFB401 Orange for Obstacles that block tower sight, read as 3 in the pipeline
+#FF1A01 Red for Blocked Spaces where no monkeys of any kind can be placed, read as 4 in the pipeline
