@@ -8,7 +8,7 @@ import cv2
 
 # map images are manually blocked out to train the data on
 # first load in the image and set it as a numpy array
-dataMap = Image.open('testMap3.png') # currently a temporary png to test pipeline
+dataMap = Image.open('../../maps/testMap3.png') # currently a temporary png to test pipeline
 edgeMap = dataMap.filter(ImageFilter.FIND_EDGES)
 dataMap = dataMap.filter(ImageFilter.SHARPEN) # processing image to read clearer
 # dataMap.save("checkMap.png") #this was for testing
@@ -67,4 +67,5 @@ for i in range(mapFinal.shape[0]):
         mapFinal[i][j] = values[index] #update new map value accordingly
 
 np.savetxt('tester.txt',mapFinal,fmt = '%d')
+
 
