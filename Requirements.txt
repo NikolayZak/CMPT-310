@@ -1,0 +1,6 @@
+Python
+numpy
+pyautogui
+pytorch
+pandas
+cv2
