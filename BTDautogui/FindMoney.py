@@ -3,11 +3,11 @@ import numpy as np
 import sys
 import os
 
-template_folder = "../Images/NumbersVector"
+template_folder = "Images/NumbersVector/"
 # Load templates
 templates = {}
 for d in range(10):
-    path = os.path.join(template_folder, f"{d}_P.png")
+    path = template_folder + f"{d}_P.png"
     t = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     if t is None:
         print(f"Missing template: {path}")
